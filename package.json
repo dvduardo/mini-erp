@@ -6,7 +6,8 @@
     "build": "cd frontend && NODE_ENV=development npm install && npx vite build && cd ..",
     "test": "playwright test --config tests/playwright.config.js",
     "test:ui": "playwright test --ui",
-    "test:debug": "playwright test --debug"
+    "test:debug": "playwright test --debug",
+    "postinstall": "npm install --prefix backend"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1"
