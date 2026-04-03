@@ -3,7 +3,7 @@ import { dbRun, dbGet, dbAll } from '../config/database.js';
 // Listar todos os clientes
 export const getClientes = async (req, res) => {
   try {
-    const clientes = await dbAll('SELECT * FROM clientes WHERE ativo = 1 ORDER BY nome');
+    const clientes = await dbAll('SELECT * FROM clientes WHERE ativo = true ORDER BY nome');
     res.json(clientes);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -112,7 +112,7 @@ export const deleteCliente = async (req, res) => {
       return res.status(404).json({ error: 'Cliente não encontrado' });
     }
     
-    await dbRun('UPDATE clientes SET ativo = 0 WHERE id = ?', [id]);
+    await dbRun('UPDATE clientes SET ativo = false WHERE id = ?', [id]);
     res.json({ message: 'Cliente deletado com sucesso' });
   } catch (err) {
     res.status(500).json({ error: err.message });
