@@ -11,15 +11,6 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: '.',
-  /* Only run functional test files — debug/inspection specs are excluded */
-  testIgnore: [
-    '**/capture-all-fields.spec.js',
-    '**/inspect-pedidos-modal.spec.js',
-    '**/debug-modal-css.spec.js',
-    '**/test-modal-two-columns.spec.js',
-    '**/test-three-modals-complete.spec.js',
-    '**/test-all-three-modals-responsive.spec.js',
-  ],
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
