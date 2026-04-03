@@ -448,8 +448,8 @@ function Pedidos() {
                     <h4 style={{ margin: 0 }}>Produtos do Pedido *</h4>
                     <button
                       type="button"
+                      className="btn-sm"
                       onClick={() => setProdutosForm([...produtosForm, emptyProduto()])}
-                      style={{ padding: '4px 10px', fontSize: '13px' }}
                     >
                       + Adicionar Produto
                     </button>
@@ -461,9 +461,9 @@ function Pedidos() {
                       {produtosForm.length > 1 && (
                         <button
                           type="button"
-                          className="danger"
+                          className="danger btn-sm"
                           onClick={() => setProdutosForm(produtosForm.filter((_, i) => i !== index))}
-                          style={{ position: 'absolute', right: '10px', top: '10px', padding: '2px 8px', fontSize: '12px' }}
+                          style={{ position: 'absolute', right: '10px', top: '10px' }}
                         >
                           Remover
                         </button>
@@ -608,8 +608,8 @@ function Pedidos() {
               )}
 
               <div className="modal-buttons">
-                <button type="button" onClick={handleCloseModal}>Cancelar</button>
-                <button type="submit" className="success">Salvar</button>
+                <button type="button" className="secondary" onClick={handleCloseModal}>Cancelar</button>
+                <button type="submit">Salvar</button>
               </div>
             </form>
           </div>
@@ -649,7 +649,7 @@ function Pedidos() {
               )}
 
               <h4>Produtos do Pedido:
-                <button style={{ marginLeft: '10px', padding: '5px 10px', fontSize: '12px' }} onClick={handleAddProdutoClick}>+ Adicionar Produto</button>
+                <button className="btn-sm" style={{ marginLeft: '10px' }} onClick={handleAddProdutoClick}>+ Adicionar Produto</button>
               </h4>
               {selectedPedido.produtos && selectedPedido.produtos.length > 0 ? (
                 <div style={{ overflowX: 'auto' }}>
@@ -726,9 +726,9 @@ function Pedidos() {
                     Baixar Nota Fiscal (PDF)
                   </a>
                   <button
-                    className="danger"
+                    className="danger btn-sm"
                     onClick={handleDeleteNotaFiscal}
-                    style={{ marginLeft: '10px', padding: '3px 8px', fontSize: '12px' }}
+                    style={{ marginLeft: '10px' }}
                   >
                     Remover
                   </button>
@@ -749,6 +749,7 @@ function Pedidos() {
                 <button
                   onClick={handleUploadNotaFiscal}
                   disabled={uploadingNota}
+                  className="btn-sm"
                   style={{ alignSelf: 'flex-start' }}
                 >
                   {uploadingNota ? 'Enviando...' : selectedPedido.notaFiscal ? 'Substituir Nota Fiscal' : 'Anexar Nota Fiscal'}
@@ -757,7 +758,7 @@ function Pedidos() {
             </div>
 
             <div className="modal-buttons">
-              <button onClick={() => setShowDetailsModal(false)}>Fechar</button>
+              <button className="secondary" onClick={() => setShowDetailsModal(false)}>Fechar</button>
             </div>
           </div>
         </div>
@@ -860,8 +861,8 @@ function Pedidos() {
               </div>
 
               <div className="modal-buttons">
-                <button type="button" onClick={handleCloseProdutoModal}>Cancelar</button>
-                <button type="submit" className="success">Adicionar</button>
+                <button type="button" className="secondary" onClick={handleCloseProdutoModal}>Cancelar</button>
+                <button type="submit">Adicionar</button>
               </div>
             </form>
           </div>
