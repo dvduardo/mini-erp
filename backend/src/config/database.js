@@ -102,7 +102,8 @@ export const dbAll = (sql, params = []) => {
   return new Promise((resolve, reject) => {
     if (isPostgres) {
       // PostgreSQL
-      db.query(sql, params)
+      const convertedSql = convertPlaceholders(sql);
+      db.query(convertedSql, params)
         .then(result => {
           resolve(result.rows);
         })

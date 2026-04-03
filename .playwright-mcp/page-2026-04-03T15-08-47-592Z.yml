@@ -1,0 +1,21 @@
+- generic [ref=e19]:
+  - navigation [ref=e20]:
+    - heading "📊 Mini ERP" [level=1] [ref=e21]
+    - list [ref=e22]:
+      - listitem [ref=e23]:
+        - button "🏠 Dashboard" [ref=e24] [cursor=pointer]
+      - listitem [ref=e25]:
+        - button "👥 Clientes" [ref=e26] [cursor=pointer]
+      - listitem [ref=e27]:
+        - button "📦 Pedidos" [active] [ref=e28] [cursor=pointer]
+      - listitem [ref=e29]:
+        - button "💰 Boletos" [ref=e30] [cursor=pointer]
+      - listitem [ref=e31]:
+        - generic [ref=e32]: 👤 david
+        - button "🚪 Sair" [ref=e33] [cursor=pointer]
+  - main [ref=e34]:
+    - generic [ref=e175]:
+      - generic [ref=e176]:
+        - heading "Pedidos" [level=2] [ref=e177]
+        - button "+ Novo Pedido" [ref=e178] [cursor=pointer]
+      - paragraph [ref=e179]: Nenhum pedido cadastrado
