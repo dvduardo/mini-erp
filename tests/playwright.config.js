@@ -39,5 +39,7 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
+  // webServer: undefined,
+  // Nota: Execute `NODE_ENV=test node backend/server.js` e `npm run dev --prefix frontend` antes de rodar os testes
   webServer: undefined,
 });

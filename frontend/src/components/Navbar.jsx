@@ -12,14 +12,17 @@ function Navbar({ currentPage, onNavigate }) {
 
   return (
     <nav>
-      <h1>📊 Mini ERP</h1>
+      <div className="nav-brand">
+        <p className="nav-brand-name">La Dispensa</p>
+        <p className="nav-brand-tagline">Gestão Artesanal</p>
+      </div>
       <ul>
         <li>
           <button
             className={currentPage === 'home' ? 'active' : ''}
             onClick={() => onNavigate('home')}
           >
-            🏠 Dashboard
+            ◈ Dashboard
           </button>
         </li>
         <li>
@@ -27,7 +30,7 @@ function Navbar({ currentPage, onNavigate }) {
             className={currentPage === 'clientes' ? 'active' : ''}
             onClick={() => onNavigate('clientes')}
           >
-            👥 Clientes
+            ◈ Clientes
           </button>
         </li>
         <li>
@@ -35,7 +38,7 @@ function Navbar({ currentPage, onNavigate }) {
             className={currentPage === 'pedidos' ? 'active' : ''}
             onClick={() => onNavigate('pedidos')}
           >
-            📦 Pedidos
+            ◈ Pedidos
           </button>
         </li>
         <li>
@@ -43,13 +46,13 @@ function Navbar({ currentPage, onNavigate }) {
             className={currentPage === 'boletos' ? 'active' : ''}
             onClick={() => onNavigate('boletos')}
           >
-            💰 Boletos
+            ◈ Boletos
           </button>
         </li>
         <li className="nav-user">
-          <span>👤 {user?.username}</span>
+          <span>↳ {user?.username}</span>
           <button onClick={handleLogout} className="btn-logout">
-            🚪 Sair
+            Sair
           </button>
         </li>
       </ul>

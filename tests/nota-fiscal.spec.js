@@ -16,34 +16,83 @@ const PDF_CONTENT = Buffer.from(
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
+// Usuário de teste fixo para evitar rate limiting
+const TEST_USER = {
+  username: 'test_auto',
+  password: 'testpass123_auto'
+};
+
 function uid() {
   return `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
 }
 
-async function criarCliente(request) {
+async function getAuthToken(request) {
+  // Primeiro tenta fazer login com usuário de teste
+  let loginRes = await request.post(`${API}/auth/login`, {
+    data: {
+      username: TEST_USER.username,
+      password: TEST_USER.password
+    }
+  });
+  
+  // Se login falha (usuário não existe), registra
+  if (loginRes.status() === 401) {
+    const registerRes = await request.post(`${API}/auth/register`, {
+      data: {
+        username: TEST_USER.username,
+        password: TEST_USER.password,
+        email: `test_auto_${Date.now()}@teste.com`
+      }
+    });
+    
+    if (registerRes.status() === 201) {
+      const body = await registerRes.json();
+      return body.token;
+    }
+    
+    // Se não conseguiu registrar, tenta login novamente
+    loginRes = await request.post(`${API}/auth/login`, {
+      data: {
+        username: TEST_USER.username,
+        password: TEST_USER.password
+      }
+    });
+  }
+  
+  if (loginRes.status() === 200) {
+    const body = await loginRes.json();
+    return body.token;
+  }
+  
+  throw new Error(`Falha na autenticação: login retornou ${loginRes.status()}`);
+}
+
+async function criarCliente(request, token) {
   const id = uid();
   const res = await request.post(`${API}/clientes`, {
     data: {
       nome: `Cliente NF ${id}`,
       email: `nf_${id}@teste.com`,
       cpf_cnpj: id.replace('-', '').slice(-14).padStart(14, '0')
-    }
+    },
+    headers: { Authorization: `Bearer ${token}` }
   });
   return (await res.json()).id;
 }
 
-async function criarPedido(request, clienteId) {
+async function criarPedido(request, clienteId, token) {
   const res = await request.post(`${API}/pedidos`, {
     data: {
       cliente_id: clienteId,
       numero_pedido: `PED-NF-${uid()}`,
       data_emissao: '2026-04-01'
-    }
+    },
+    headers: { Authorization: `Bearer ${token}` }
   });
   return (await res.json()).id;
 }
 
-async function uploadPDF(request, pedidoId, numeroNota = null) {
+async function uploadPDF(request, pedidoId, numeroNota = null, token = null) {
   const formData = {
     arquivo: {
       name: 'nota_fiscal_teste.pdf',
@@ -54,18 +103,28 @@ async function uploadPDF(request, pedidoId, numeroNota = null) {
   };
   if (numeroNota) formData.numero_nota_fiscal = numeroNota;
 
-  return request.post(`${API}/notas-fiscais/upload`, { multipart: formData });
+  const options = { multipart: formData };
+  if (token) {
+    options.headers = { Authorization: `Bearer ${token}` };
+  }
+
+  return request.post(`${API}/notas-fiscais/upload`, options);
 }
 
 // ─── BACKEND: API Notas Fiscais ───────────────────────────────────────────────
 
 test.describe('API Backend - Notas Fiscais', () => {
+  let token;
+
+  test.beforeEach(async ({ request }) => {
+    token = await getAuthToken(request);
+  });
 
   test('POST /upload com PDF válido retorna 201 com dados da nota', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
 
-    const res = await uploadPDF(request, pedidoId, 'NF-001');
+    const res = await uploadPDF(request, pedidoId, 'NF-001', token);
 
     expect(res.status()).toBe(201);
     const body = await res.json();
@@ -77,11 +136,12 @@ test.describe('API Backend - Notas Fiscais', () => {
   });
 
   test('POST /upload sem arquivo retorna 400', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
 
     const res = await request.post(`${API}/notas-fiscais/upload`, {
-      multipart: { pedido_id: String(pedidoId) }
+      multipart: { pedido_id: String(pedidoId) },
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     expect(res.status()).toBe(400);
@@ -97,7 +157,8 @@ test.describe('API Backend - Notas Fiscais', () => {
           mimeType: 'application/pdf',
           buffer: PDF_CONTENT
         }
-      }
+      },
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     expect(res.status()).toBe(400);
@@ -106,8 +167,8 @@ test.describe('API Backend - Notas Fiscais', () => {
   });
 
   test('POST /upload com arquivo não-PDF retorna erro', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
 
     const res = await request.post(`${API}/notas-fiscais/upload`, {
       multipart: {
@@ -117,7 +178,8 @@ test.describe('API Backend - Notas Fiscais', () => {
           buffer: Buffer.from('isso nao e um pdf')
         },
         pedido_id: String(pedidoId)
-      }
+      },
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     // Multer rejeita o arquivo - espera erro (400 ou 500)
@@ -125,21 +187,21 @@ test.describe('API Backend - Notas Fiscais', () => {
   });
 
   test('POST /upload com pedido inexistente retorna 404', async ({ request }) => {
-    const res = await uploadPDF(request, 999999);
+    const res = await uploadPDF(request, 999999, null, token);
     expect(res.status()).toBe(404);
   });
 
   test('POST /upload substitui nota fiscal anterior do mesmo pedido', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
 
     // Primeiro upload
-    const res1 = await uploadPDF(request, pedidoId, 'NF-ORIGINAL');
+    const res1 = await uploadPDF(request, pedidoId, 'NF-ORIGINAL', token);
     expect(res1.status()).toBe(201);
     const nota1 = (await res1.json()).nota;
 
     // Segundo upload (substitui)
-    const res2 = await uploadPDF(request, pedidoId, 'NF-SUBSTITUTA');
+    const res2 = await uploadPDF(request, pedidoId, 'NF-SUBSTITUTA', token);
     expect(res2.status()).toBe(201);
     const nota2 = (await res2.json()).nota;
 
@@ -148,16 +210,18 @@ test.describe('API Backend - Notas Fiscais', () => {
     expect(nota2.numero_nota_fiscal).toBe('NF-SUBSTITUTA');
 
     // GET no pedido deve retornar apenas a nota nova
-    const pedidoRes = await request.get(`${API}/pedidos/${pedidoId}`);
+    const pedidoRes = await request.get(`${API}/pedidos/${pedidoId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     const pedido = await pedidoRes.json();
     expect(pedido.notaFiscal.numero_nota_fiscal).toBe('NF-SUBSTITUTA');
   });
 
   test('POST /upload sem numero_nota_fiscal ainda funciona', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
 
-    const res = await uploadPDF(request, pedidoId); // sem número
+    const res = await uploadPDF(request, pedidoId, null, token); // sem número
 
     expect(res.status()).toBe(201);
     const body = await res.json();
@@ -166,36 +230,44 @@ test.describe('API Backend - Notas Fiscais', () => {
   });
 
   test('GET /api/pedidos/:id inclui notaFiscal após upload', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
 
     // Antes do upload
-    const antes = await (await request.get(`${API}/pedidos/${pedidoId}`)).json();
+    const antes = await (await request.get(`${API}/pedidos/${pedidoId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })).json();
     expect(antes.notaFiscal).toBeNull();
 
     // Upload
-    await uploadPDF(request, pedidoId, 'NF-TESTE-GET');
+    await uploadPDF(request, pedidoId, 'NF-TESTE-GET', token);
 
     // Depois do upload
-    const depois = await (await request.get(`${API}/pedidos/${pedidoId}`)).json();
+    const depois = await (await request.get(`${API}/pedidos/${pedidoId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })).json();
     expect(depois.notaFiscal).not.toBeNull();
     expect(depois.notaFiscal.numero_nota_fiscal).toBe('NF-TESTE-GET');
     expect(depois.notaFiscal.caminho_arquivo).toMatch(/^uploads\//);
   });
 
   test('GET /api/notas-fiscais lista todas as notas', async ({ request }) => {
-    const res = await request.get(`${API}/notas-fiscais`);
+    const res = await request.get(`${API}/notas-fiscais`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
   });
 
   test('GET /api/notas-fiscais?pedidoId=X filtra por pedido', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
-    await uploadPDF(request, pedidoId, 'NF-FILTRO');
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
+    await uploadPDF(request, pedidoId, 'NF-FILTRO', token);
 
-    const res = await request.get(`${API}/notas-fiscais?pedidoId=${pedidoId}`);
+    const res = await request.get(`${API}/notas-fiscais?pedidoId=${pedidoId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.length).toBe(1);
@@ -203,12 +275,14 @@ test.describe('API Backend - Notas Fiscais', () => {
   });
 
   test('GET /api/notas-fiscais/:id retorna nota por ID', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
-    const uploadRes = await uploadPDF(request, pedidoId, 'NF-BY-ID');
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
+    const uploadRes = await uploadPDF(request, pedidoId, 'NF-BY-ID', token);
     const notaId = (await uploadRes.json()).nota.id;
 
-    const res = await request.get(`${API}/notas-fiscais/${notaId}`);
+    const res = await request.get(`${API}/notas-fiscais/${notaId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.id).toBe(notaId);
@@ -216,22 +290,28 @@ test.describe('API Backend - Notas Fiscais', () => {
   });
 
   test('DELETE /api/notas-fiscais/:id remove a nota', async ({ request }) => {
-    const clienteId = await criarCliente(request);
-    const pedidoId = await criarPedido(request, clienteId);
-    const uploadRes = await uploadPDF(request, pedidoId, 'NF-DELETE');
+    const clienteId = await criarCliente(request, token);
+    const pedidoId = await criarPedido(request, clienteId, token);
+    const uploadRes = await uploadPDF(request, pedidoId, 'NF-DELETE', token);
     const notaId = (await uploadRes.json()).nota.id;
 
-    const delRes = await request.delete(`${API}/notas-fiscais/${notaId}`);
+    const delRes = await request.delete(`${API}/notas-fiscais/${notaId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     expect(delRes.status()).toBe(200);
 
     // Nota não existe mais no pedido
-    const pedidoRes = await request.get(`${API}/pedidos/${pedidoId}`);
+    const pedidoRes = await request.get(`${API}/pedidos/${pedidoId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     const pedido = await pedidoRes.json();
     expect(pedido.notaFiscal).toBeNull();
   });
 
   test('DELETE /api/notas-fiscais/:id com ID inexistente retorna 404', async ({ request }) => {
-    const res = await request.delete(`${API}/notas-fiscais/999999`);
+    const res = await request.delete(`${API}/notas-fiscais/999999`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
     expect(res.status()).toBe(404);
   });
 });
@@ -242,15 +322,18 @@ test.describe('Frontend E2E - Nota Fiscal no Pedido', () => {
 
   // Cria cliente e pedido via API antes dos testes de UI
   let pedidoNumero;
+  let token;
 
   test.beforeEach(async ({ request }) => {
-    const clienteId = await criarCliente(request);
+    token = await getAuthToken(request);
+    const clienteId = await criarCliente(request, token);
     const res = await request.post(`${API}/pedidos`, {
       data: {
         cliente_id: clienteId,
         numero_pedido: `PED-NF-UI-${uid()}`,
         data_emissao: '2026-04-01'
-      }
+      },
+      headers: { Authorization: `Bearer ${token}` }
     });
     const pedido = await res.json();
     pedidoNumero = pedido.numero_pedido;

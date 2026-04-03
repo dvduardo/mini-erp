@@ -25,8 +25,9 @@ app.use(helmet());
 // Rate limiter para login (evitar brute force)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // máximo 5 tentativas
-  message: 'Muitas tentativas de login. Tente novamente em 15 minutos.'
+  max: process.env.NODE_ENV === 'test' ? 1000 : 5, // máximo 1000 em testes, 5 em produção
+  message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
+  skip: (req, res) => process.env.NODE_ENV === 'test' // Desativar rate limiter em testes
 });
 
 // Middlewares gerais

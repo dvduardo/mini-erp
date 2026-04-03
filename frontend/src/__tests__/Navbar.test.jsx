@@ -12,7 +12,7 @@ describe('Navbar', () => {
 
   it('renderiza o título do sistema', () => {
     render(<Navbar currentPage="home" onNavigate={onNavigate} />);
-    expect(screen.getByText(/Mini ERP/i)).toBeInTheDocument();
+    expect(screen.getByText(/La Dispensa/i)).toBeInTheDocument();
   });
 
   it('renderiza todos os links de navegação', () => {

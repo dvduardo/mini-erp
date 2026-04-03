@@ -272,8 +272,8 @@ function Clientes() {
               </div>
 
               <div className="modal-buttons">
-                <button type="button" onClick={handleCloseModal}>Cancelar</button>
-                <button type="submit" className="success">Salvar</button>
+                <button type="button" className="secondary" onClick={handleCloseModal}>Cancelar</button>
+                <button type="submit">Salvar</button>
               </div>
             </form>
           </div>
