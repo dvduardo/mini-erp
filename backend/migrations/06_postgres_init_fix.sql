@@ -11,6 +11,11 @@ CREATE TABLE clientes (
   cpf_cnpj TEXT UNIQUE,
   endereco TEXT,
   razao_social TEXT,
+  nome_fantasia TEXT,
+  bairro TEXT,
+  cidade TEXT,
+  cep TEXT,
+  inscricao_estadual TEXT,
   data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   ativo BOOLEAN DEFAULT TRUE
 );
