@@ -1,0 +1,39 @@
+- generic [ref=e3]:
+  - navigation [ref=e6]:
+    - heading "📊 Mini ERP" [level=1] [ref=e7]
+    - list [ref=e8]:
+      - listitem [ref=e9]:
+        - button "🏠 Dashboard" [ref=e10] [cursor=pointer]
+      - listitem [ref=e11]:
+        - button "👥 Clientes" [ref=e12] [cursor=pointer]
+      - listitem [ref=e13]:
+        - button "📦 Pedidos" [ref=e14] [cursor=pointer]
+      - listitem [ref=e15]:
+        - button "💰 Boletos" [ref=e16] [cursor=pointer]
+      - listitem [ref=e17]:
+        - generic [ref=e18]: 👤 david
+        - button "🚪 Sair" [ref=e19] [cursor=pointer]
+  - main [ref=e20]:
+    - generic [ref=e133]:
+      - generic [ref=e134]:
+        - heading "Clientes" [level=2] [ref=e135]
+        - button "+ Novo Cliente" [ref=e136] [cursor=pointer]
+      - table [ref=e185]:
+        - rowgroup [ref=e186]:
+          - row "Nome Fantasia Razão Social CNPJ Telefone Cidade Ações" [ref=e187]:
+            - columnheader "Nome Fantasia" [ref=e188]
+            - columnheader "Razão Social" [ref=e189]
+            - columnheader "CNPJ" [ref=e190]
+            - columnheader "Telefone" [ref=e191]
+            - columnheader "Cidade" [ref=e192]
+            - columnheader "Ações" [ref=e193]
+        - rowgroup [ref=e194]:
+          - row "Teste Cliente - - - - Editar Deletar" [ref=e195]:
+            - cell "Teste Cliente" [ref=e196]
+            - cell "-" [ref=e197]
+            - cell "-" [ref=e198]
+            - cell "-" [ref=e199]
+            - cell "-" [ref=e200]
+            - cell "Editar Deletar" [ref=e201]:
+              - button "Editar" [ref=e202] [cursor=pointer]
+              - button "Deletar" [ref=e203] [cursor=pointer]

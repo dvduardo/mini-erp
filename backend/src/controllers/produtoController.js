@@ -36,7 +36,7 @@ export const getProdutoById = async (req, res) => {
 // Criar produto no pedido
 export const createProduto = async (req, res) => {
   try {
-    const { pedido_id, codigo_fornecedor, cod_seq, produto_receber, embalagem, quantidade, valor_unitario, valor_item, custo_bruto, valor_icms_st } = req.body;
+    const { pedido_id, cod_fornecedor, cod_seq, produto_receber, embalagem, quantidade, valor_unitario, valor_item, custo_bruto, valor_icms_st } = req.body;
 
     if (!pedido_id || !produto_receber || !quantidade || valor_unitario === undefined || valor_item === undefined) {
       return res.status(400).json({
@@ -52,9 +52,9 @@ export const createProduto = async (req, res) => {
 
     const result = await dbRun(
       `INSERT INTO pedido_produtos
-       (pedido_id, codigo_fornecedor, cod_seq, produto_receber, embalagem, quantidade, valor_unitario, valor_item, custo_bruto, valor_icms_st)
+       (pedido_id, cod_fornecedor, cod_seq, produto_receber, embalagem, quantidade, valor_unitario, valor_item, custo_bruto, valor_icms_st)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
-      [pedido_id, codigo_fornecedor, cod_seq, produto_receber, embalagem, quantidade, valor_unitario, valor_item, custo_bruto, valor_icms_st]
+      [pedido_id, cod_fornecedor, cod_seq, produto_receber, embalagem, quantidade, valor_unitario, valor_item, custo_bruto, valor_icms_st]
     );
 
     const produto = await dbGet('SELECT * FROM pedido_produtos WHERE id = ?', [result.id]);
@@ -68,7 +68,7 @@ export const createProduto = async (req, res) => {
 export const updateProduto = async (req, res) => {
   try {
     const { id } = req.params;
-    const { codigo_fornecedor, cod_seq, produto_receber, embalagem, quantidade, valor_unitario, valor_item, custo_bruto, valor_icms_st } = req.body;
+    const { cod_fornecedor, cod_seq, produto_receber, embalagem, quantidade, valor_unitario, valor_item, custo_bruto, valor_icms_st } = req.body;
 
     const produto = await dbGet('SELECT * FROM pedido_produtos WHERE id = ?', [id]);
     if (!produto) {
@@ -77,11 +77,11 @@ export const updateProduto = async (req, res) => {
 
     await dbRun(
       `UPDATE pedido_produtos
-       SET codigo_fornecedor = ?, cod_seq = ?, produto_receber = ?, embalagem = ?,
+       SET cod_fornecedor = ?, cod_seq = ?, produto_receber = ?, embalagem = ?,
            quantidade = ?, valor_unitario = ?, valor_item = ?, custo_bruto = ?, valor_icms_st = ?
        WHERE id = ?`,
       [
-        codigo_fornecedor !== undefined ? codigo_fornecedor : produto.codigo_fornecedor,
+        cod_fornecedor !== undefined ? cod_fornecedor : produto.cod_fornecedor,
         cod_seq !== undefined ? cod_seq : produto.cod_seq,
         produto_receber !== undefined ? produto_receber : produto.produto_receber,
         embalagem !== undefined ? embalagem : produto.embalagem,
