@@ -124,27 +124,20 @@ jobs:
       - name: Start backend server
         working-directory: backend
         run: |
-          PORT=5001 npm run dev > ../backend.log 2>&1 &
+          npm run dev > ../backend.log 2>&1 &
           echo $! > ../backend.pid
 
-      - name: Start frontend on port 3000
+      - name: Start frontend
         working-directory: frontend
         run: |
-          npm run dev -- --host 0.0.0.0 --port 3000 > ../frontend-3000.log 2>&1 &
-          echo $! > ../frontend-3000.pid
-
-      - name: Start frontend on port 3001
-        working-directory: frontend
-        run: |
-          npm run dev -- --host 0.0.0.0 --port 3001 > ../frontend-3001.log 2>&1 &
-          echo $! > ../frontend-3001.pid
+          npm run dev -- --host 0.0.0.0 --port 3000 > ../frontend.log 2>&1 &
+          echo $! > ../frontend.pid
 
       - name: Wait for servers
         run: |
           for i in {1..60}; do
             if curl -fsS http://localhost:5001/api/health >/dev/null \
-              && curl -fsS http://localhost:3000 >/dev/null \
-              && curl -fsS http://localhost:3001 >/dev/null; then
+              && curl -fsS http://localhost:3000 >/dev/null; then
               echo "All services are ready"
               exit 0
             fi
@@ -155,27 +148,25 @@ jobs:
           echo "Services did not become ready in time"
           echo "--- backend.log ---"
           cat backend.log || true
-          echo "--- frontend-3000.log ---"
-          cat frontend-3000.log || true
-          echo "--- frontend-3001.log ---"
-          cat frontend-3001.log || true
+          echo "--- frontend.log ---"
+          cat frontend.log || true
           exit 1
 
-      # - name: Run E2E tests
-      #   run: npm test
+      - name: Run E2E tests
+        run: npm test
 
-      # - name: Upload Playwright report on failure
-      #   if: failure()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: playwright-report
-      #     path: playwright-report/
-      #     if-no-files-found: ignore
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
 
       - name: Stop background servers
         if: always()
         run: |
-          for pid_file in backend.pid frontend-3000.pid frontend-3001.pid; do
+          for pid_file in backend.pid frontend.pid; do
             if [ -f "$pid_file" ]; then
               kill "$(cat "$pid_file")" || true
             fi
