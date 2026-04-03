@@ -120,6 +120,12 @@ nav button {
   letter-spacing: 0.2px;
 }
 
+.leaf-icon {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
 nav button:hover,
 nav button.active {
   background: var(--color-nav-hover);
@@ -130,6 +136,12 @@ nav button.active {
   background: var(--color-nav-active);
   color: var(--color-accent-light);
   font-weight: 600;
+}
+
+.nav-item-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 nav .nav-user {

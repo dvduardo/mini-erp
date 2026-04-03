@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import LeafIcon from './LeafIcon';
 
 function Navbar({ currentPage, onNavigate }) {
   const { user, logout } = useAuth();
@@ -28,7 +29,8 @@ function Navbar({ currentPage, onNavigate }) {
               className={currentPage === key ? 'active' : ''}
               onClick={() => onNavigate(key)}
             >
-              {currentPage === key ? '◈ ' : ''}{label}
+              {currentPage === key && <LeafIcon className="nav-item-icon" color="currentColor" />}
+              {label}
             </button>
           </li>
         ))}
