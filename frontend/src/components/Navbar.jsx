@@ -1,6 +1,15 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
 function Navbar({ currentPage, onNavigate }) {
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    // Recarregar página para voltar à tela de login
+    window.location.reload();
+  };
+
   return (
     <nav>
       <h1>📊 Mini ERP</h1>
@@ -35,6 +44,12 @@ function Navbar({ currentPage, onNavigate }) {
             onClick={() => onNavigate('boletos')}
           >
             💰 Boletos
+          </button>
+        </li>
+        <li className="nav-user">
+          <span>👤 {user?.username}</span>
+          <button onClick={handleLogout} className="btn-logout">
+            🚪 Sair
           </button>
         </li>
       </ul>
