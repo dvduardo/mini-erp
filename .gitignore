@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Database
+backend/*.sqlite
+backend/*.db
+
+# Uploads (user files)
+backend/uploads/
+
+# Build output
+frontend/dist/
+frontend/.vite/
+
+# Playwright
+playwright-report/
+test-results/
+tests/screenshots/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

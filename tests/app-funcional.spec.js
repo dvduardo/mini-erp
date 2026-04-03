@@ -1,0 +1,374 @@
+import { test, expect } from '@playwright/test';
+
+const BASE = 'http://localhost:3000';
+const API = 'http://localhost:3001/api';
+
+// ─── helpers ─────────────────────────────────────────────────────────────────
+
+async function navTo(page, label) {
+  await page.click(`nav a:has-text("${label}")`);
+  await page.waitForLoadState('networkidle');
+}
+
+// ─── BACKEND DIRETO ──────────────────────────────────────────────────────────
+
+test.describe('API Backend', () => {
+  let clienteId;
+  let pedidoId;
+
+  test('GET /api/clientes retorna lista', async ({ request }) => {
+    const res = await request.get(`${API}/clientes`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+  });
+
+  test('POST /api/clientes cria cliente', async ({ request }) => {
+    const res = await request.post(`${API}/clientes`, {
+      data: {
+        nome: 'Cliente Teste Auto',
+        email: `auto_${Date.now()}@teste.com`,
+        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0'),
+        telefone: '11999990000'
+      }
+    });
+    expect(res.status()).toBe(201);
+    const body = await res.json();
+    expect(body.id).toBeTruthy();
+    clienteId = body.id;
+  });
+
+  test('POST /api/pedidos cria pedido com data_emissao', async ({ request }) => {
+    // Garantir que temos um cliente
+    const cRes = await request.post(`${API}/clientes`, {
+      data: {
+        nome: 'Cliente Pedido Auto',
+        email: `pedido_${Date.now()}@teste.com`,
+        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+      }
+    });
+    const cliente = await cRes.json();
+
+    const res = await request.post(`${API}/pedidos`, {
+      data: {
+        cliente_id: cliente.id,
+        numero_pedido: `PED-AUTO-${Date.now()}`,
+        data_emissao: '2026-04-01',
+        data_entrega: '2026-04-30',
+        total_pedido: 500.00
+      }
+    });
+    expect(res.status()).toBe(201);
+    const body = await res.json();
+    expect(body.id).toBeTruthy();
+    expect(body.data_emissao).toBeTruthy();
+    pedidoId = body.id;
+  });
+
+  test('POST /api/produtos cria produto no pedido', async ({ request }) => {
+    // Criar cliente e pedido para o produto
+    const cRes = await request.post(`${API}/clientes`, {
+      data: {
+        nome: 'Cliente Produto Auto',
+        email: `prod_${Date.now()}@teste.com`,
+        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+      }
+    });
+    const cliente = await cRes.json();
+
+    const pRes = await request.post(`${API}/pedidos`, {
+      data: {
+        cliente_id: cliente.id,
+        numero_pedido: `PED-PROD-${Date.now()}`,
+        data_emissao: '2026-04-01'
+      }
+    });
+    const pedido = await pRes.json();
+
+    const res = await request.post(`${API}/produtos`, {
+      data: {
+        pedido_id: pedido.id,
+        produto_receber: 'Produto Teste Automatizado',
+        quantidade: 5,
+        valor_unitario: 100.00,
+        valor_item: 500.00
+      }
+    });
+    expect(res.status()).toBe(201);
+    const body = await res.json();
+    expect(body.id).toBeTruthy();
+    expect(body.produto_receber).toBe('Produto Teste Automatizado');
+  });
+
+  test('GET /api/pedidos/:id retorna produtos e boletos', async ({ request }) => {
+    // Criar cliente e pedido
+    const cRes = await request.post(`${API}/clientes`, {
+      data: {
+        nome: 'Cliente Detalhe Auto',
+        email: `det_${Date.now()}@teste.com`,
+        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+      }
+    });
+    const cliente = await cRes.json();
+
+    const pRes = await request.post(`${API}/pedidos`, {
+      data: {
+        cliente_id: cliente.id,
+        numero_pedido: `PED-DET-${Date.now()}`,
+        data_emissao: '2026-04-02'
+      }
+    });
+    const pedido = await pRes.json();
+
+    // Adicionar produto
+    await request.post(`${API}/produtos`, {
+      data: {
+        pedido_id: pedido.id,
+        produto_receber: 'Produto Detalhe',
+        quantidade: 2,
+        valor_unitario: 50,
+        valor_item: 100
+      }
+    });
+
+    const res = await request.get(`${API}/pedidos/${pedido.id}`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.produtos).toBeDefined();
+    expect(body.produtos.length).toBeGreaterThan(0);
+    expect(body.boletos).toBeDefined();
+    expect(body.data_emissao).toBeTruthy();
+  });
+
+  test('PUT /api/pedidos/:id atualiza data_emissao', async ({ request }) => {
+    const cRes = await request.post(`${API}/clientes`, {
+      data: {
+        nome: 'Cliente Update Auto',
+        email: `upd_${Date.now()}@teste.com`,
+        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+      }
+    });
+    const cliente = await cRes.json();
+
+    const pRes = await request.post(`${API}/pedidos`, {
+      data: {
+        cliente_id: cliente.id,
+        numero_pedido: `PED-UPD-${Date.now()}`
+      }
+    });
+    const pedido = await pRes.json();
+
+    const res = await request.put(`${API}/pedidos/${pedido.id}`, {
+      data: { data_emissao: '2026-03-15', status: 'em_preparacao' }
+    });
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.data_emissao).toContain('2026-03-15');
+    expect(body.status).toBe('em_preparacao');
+  });
+
+  test('DELETE /api/pedidos/:id deleta pedido', async ({ request }) => {
+    const cRes = await request.post(`${API}/clientes`, {
+      data: {
+        nome: 'Cliente Del Auto',
+        email: `del_${Date.now()}@teste.com`,
+        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+      }
+    });
+    const cliente = await cRes.json();
+
+    const pRes = await request.post(`${API}/pedidos`, {
+      data: {
+        cliente_id: cliente.id,
+        numero_pedido: `PED-DEL-${Date.now()}`
+      }
+    });
+    const pedido = await pRes.json();
+
+    const res = await request.delete(`${API}/pedidos/${pedido.id}`);
+    expect(res.status()).toBe(200);
+
+    const getRes = await request.get(`${API}/pedidos/${pedido.id}`);
+    expect(getRes.status()).toBe(404);
+  });
+
+  test('POST /api/pedidos retorna erro sem campos obrigatórios', async ({ request }) => {
+    const res = await request.post(`${API}/pedidos`, {
+      data: { observacoes: 'incompleto' }
+    });
+    expect(res.status()).toBe(400);
+  });
+});
+
+// ─── FRONTEND E2E ────────────────────────────────────────────────────────────
+
+test.describe('Frontend - Navegação', () => {
+  test('carrega a página inicial', async ({ page }) => {
+    await page.goto(BASE);
+    await expect(page.locator('nav, header')).toBeVisible();
+  });
+
+  test('navega para Clientes', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Clientes');
+    await expect(page.locator('h2:has-text("Clientes")')).toBeVisible();
+  });
+
+  test('navega para Pedidos', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+    await expect(page.locator('h2:has-text("Pedidos")')).toBeVisible();
+  });
+
+  test('navega para Boletos', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Boletos');
+    await expect(page.locator('h2:has-text("Boletos")')).toBeVisible();
+  });
+});
+
+test.describe('Frontend - Clientes', () => {
+  test('abre modal de novo cliente', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Clientes');
+    await page.click('button:has-text("Novo Cliente")');
+    await expect(page.locator('.modal.active')).toBeVisible();
+    await expect(page.locator('label:has-text("Nome / Contato")')).toBeVisible();
+  });
+
+  test('cria um cliente pelo formulário', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Clientes');
+    await page.click('button:has-text("Novo Cliente")');
+
+    const nomeUnico = `Cliente UI ${Date.now()}`;
+
+    // Preencher campo Nome / Contato
+    const nomeSection = page.locator('.form-group').filter({ has: page.locator('label:has-text("Nome / Contato")') });
+    await nomeSection.locator('input').fill(nomeUnico);
+
+    // Preencher CNPJ (obrigatório)
+    const cnpjSection = page.locator('.form-group').filter({ has: page.locator('label:has-text("CNPJ")') });
+    await cnpjSection.locator('input').fill(`${Date.now()}`.slice(-14).padStart(14, '0'));
+
+    await page.click('button.success, button:has-text("Salvar")');
+    await page.waitForTimeout(1500);
+    await expect(page.locator(`td:has-text("${nomeUnico}")`)).toBeVisible({ timeout: 5000 });
+  });
+});
+
+test.describe('Frontend - Pedidos', () => {
+  test('modal de novo pedido tem campo Data de Emissão', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+    await page.click('button:has-text("Novo Pedido")');
+    await expect(page.locator('.modal.active')).toBeVisible();
+    await expect(page.locator('label:has-text("Data de Emissão")')).toBeVisible();
+  });
+
+  test('modal de novo pedido tem seção de Produtos', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+    await page.click('button:has-text("Novo Pedido")');
+    await expect(page.locator('text=Produtos do Pedido')).toBeVisible();
+    await expect(page.locator('label:has-text("Produto a Receber")')).toBeVisible();
+    await expect(page.locator('label:has-text("Quantidade")')).toBeVisible();
+    await expect(page.locator('label:has-text("Valor Unitário")')).toBeVisible();
+  });
+
+  test('botão + Adicionar Produto adiciona novo bloco de produto', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+    await page.click('button:has-text("Novo Pedido")');
+
+    const initialCount = await page.locator('text=Produto 1').count();
+    await page.click('button:has-text("+ Adicionar Produto")');
+    await expect(page.locator('text=Produto 2')).toBeVisible();
+  });
+
+  test('cria pedido com produto pelo formulário', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+    await page.click('button:has-text("Novo Pedido")');
+
+    // Selecionar cliente
+    const select = page.locator('select').first();
+    await select.selectOption({ index: 1 });
+
+    // Número do pedido
+    const numPedido = `PED-UI-${Date.now()}`;
+    await page.locator('input[placeholder=""], input[type="text"]').nth(0).fill(numPedido);
+
+    // Data de emissão
+    const dateInputs = page.locator('input[type="date"]');
+    await dateInputs.nth(0).fill('2026-04-01');
+
+    // Produto
+    await page.locator('input[type="text"]').filter({ hasText: '' }).last().fill('Produto Teste UI');
+    // Preencher campos do produto pelo placeholder ou sequência
+    const produtoInput = page.locator('label:has-text("Produto a Receber") + input, label:has-text("Produto a Receber") ~ input').first();
+    // Usar locator mais robusto
+    const produtoSection = page.locator('.form-group').filter({ has: page.locator('label:has-text("Produto a Receber")') });
+    await produtoSection.locator('input').fill('Produto Teste UI');
+
+    const qtdSection = page.locator('.form-group').filter({ has: page.locator('label:has-text("Quantidade")') });
+    await qtdSection.locator('input').fill('3');
+
+    const vuSection = page.locator('.form-group').filter({ has: page.locator('label:has-text("Valor Unitário")') });
+    await vuSection.locator('input').fill('100');
+
+    const viSection = page.locator('.form-group').filter({ has: page.locator('label:has-text("Valor Item")') });
+    await viSection.locator('input').fill('300');
+
+    await page.click('button.success, button:has-text("Salvar")');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator(`td:has-text("${numPedido}")`)).toBeVisible({ timeout: 7000 });
+  });
+
+  test('modal de edição tem campo Data de Emissão', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+
+    // Clicar em Editar no primeiro pedido disponível
+    const editBtn = page.locator('button:has-text("Editar")').first();
+    const hasEdit = await editBtn.isVisible({ timeout: 3000 }).catch(() => false);
+
+    if (hasEdit) {
+      await editBtn.click();
+      await expect(page.locator('.modal.active, .modal-content')).toBeVisible();
+      await expect(page.locator('label:has-text("Data de Emissão")')).toBeVisible();
+    } else {
+      test.skip();
+    }
+  });
+
+  test('tela de detalhes mostra Data de Emissão', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+
+    const detBtn = page.locator('button:has-text("Detalhes")').first();
+    const hasDet = await detBtn.isVisible({ timeout: 3000 }).catch(() => false);
+
+    if (hasDet) {
+      await detBtn.click();
+      await expect(page.locator('text=Data de Emissão')).toBeVisible();
+    } else {
+      test.skip();
+    }
+  });
+
+  test('botão Remover produto funciona no form de novo pedido', async ({ page }) => {
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+    await page.click('button:has-text("Novo Pedido")');
+
+    // Adicionar segundo produto
+    await page.click('button:has-text("+ Adicionar Produto")');
+    await expect(page.locator('text=Produto 2')).toBeVisible();
+
+    // Remover o segundo produto
+    await page.locator('button.danger:has-text("Remover")').first().click();
+    await expect(page.locator('text=Produto 2')).not.toBeVisible();
+    await expect(page.locator('text=Produto 1')).toBeVisible();
+  });
+});
