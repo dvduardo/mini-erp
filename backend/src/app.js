@@ -19,6 +19,9 @@ import { authMiddleware } from './middleware/auth.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
+// Configurar proxy reverso (necessário para Heroku e X-Forwarded-For)
+app.set('trust proxy', 1);
+
 // Middlewares de segurança
 app.use(helmet());
 
