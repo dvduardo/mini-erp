@@ -9,8 +9,7 @@
     "dev": "nodemon server.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "postinstall": "cd ../frontend && npm install && npm run build && cd ../backend"
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "erp",
