@@ -1,19 +1,47 @@
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-const mockInstance = vi.hoisted(() => {
-  const interceptors = { use: vi.fn() };
-  return {
+const mockState = vi.hoisted(() => ({
+  instance: null
+}));
+
+vi.hoisted(() => {
+  mockState.instance = {
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),
-    interceptors: { request: interceptors, response: interceptors }
+    interceptors: {
+      request: {
+        use: vi.fn()
+      },
+      response: {
+        use: vi.fn()
+      }
+    }
   };
 });
 
 vi.mock('axios', () => ({
-  default: { create: vi.fn(() => mockInstance) }
+  default: { 
+    create: vi.fn(() => mockState.instance) 
+  }
 }));
+
+// Mock window.location.href before importing api
+delete window.location;
+window.location = { href: '' };
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn()
+};
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true
+});
 
 import '../services/api.js';
 import {
@@ -25,7 +53,16 @@ import {
   notasFiscaisAPI
 } from '../services/api.js';
 
-const mockApi = mockInstance;
+const mockApi = mockState.instance;
+
+// Capture interceptor handlers from the initial registrations
+const requestUseCalls = mockApi.interceptors.request.use.mock.calls;
+const responseUseCalls = mockApi.interceptors.response.use.mock.calls;
+
+const requestSuccessHandler = requestUseCalls[0] ? requestUseCalls[0][0] : null;
+const requestErrorHandler = requestUseCalls[0] ? requestUseCalls[0][1] : null;
+const responseSuccessHandler = responseUseCalls[0] ? responseUseCalls[0][0] : null;
+const responseErrorHandler = responseUseCalls[0] ? responseUseCalls[0][1] : null;
 
 describe('API Service', () => {
   beforeEach(() => {
@@ -213,6 +250,119 @@ describe('API Service', () => {
     it('me chama GET /auth/me', async () => {
       await authAPI.me();
       expect(mockApi.get).toHaveBeenCalledWith('/auth/me');
+    });
+  });
+
+  describe('Interceptores', () => {
+    beforeEach(() => {
+      localStorageMock.getItem.mockClear();
+      localStorageMock.removeItem.mockClear();
+      window.location.href = '';
+    });
+
+    afterEach(() => {
+      vi.clearAllMocks();
+    });
+
+    describe('Request Interceptor', () => {
+      it('adiciona token JWT no header quando token existe no localStorage', () => {
+        const config = { headers: {} };
+        localStorageMock.getItem.mockReturnValue('test-token');
+
+        const result = requestSuccessHandler(config);
+
+        expect(localStorageMock.getItem).toHaveBeenCalledWith('authToken');
+        expect(result.headers.Authorization).toBe('Bearer test-token');
+      });
+
+      it('não adiciona Authorization quando token não existe no localStorage', () => {
+        const config = { headers: {} };
+        localStorageMock.getItem.mockReturnValue(null);
+
+        const result = requestSuccessHandler(config);
+
+        expect(localStorageMock.getItem).toHaveBeenCalledWith('authToken');
+        expect(result.headers.Authorization).toBeUndefined();
+      });
+
+      it('retorna config inalterada quando não há token', () => {
+        const config = { headers: {} };
+        localStorageMock.getItem.mockReturnValue(null);
+
+        const result = requestSuccessHandler(config);
+
+        expect(result).toEqual(config);
+      });
+
+      it('trata erro no interceptor de requisição', async () => {
+        const error = new Error('Request error');
+        const result = requestErrorHandler(error);
+
+        // Should return a rejected promise
+        await expect(result).rejects.toThrow('Request error');
+      });
+    });
+
+    describe('Response Interceptor', () => {
+      it('retorna response quando sucesso', () => {
+        const response = { status: 200, data: {} };
+
+        const result = responseSuccessHandler(response);
+
+        expect(result).toEqual(response);
+      });
+
+      it('remove token e redireciona para /login em erro 401', async () => {
+        const error = {
+          response: { status: 401 }
+        };
+
+        try {
+          await responseErrorHandler(error);
+        } catch (e) {
+          // Expected to throw
+        }
+
+        expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
+        expect(window.location.href).toBe('/login');
+      });
+
+      it('rejeita erro quando status não é 401', async () => {
+        const error = {
+          response: { status: 500, data: {} }
+        };
+
+        try {
+          await responseErrorHandler(error);
+        } catch (e) {
+          expect(e).toEqual(error);
+        }
+      });
+
+      it('rejeita erro quando não há response (erro de rede)', async () => {
+        const error = new Error('Network error');
+
+        try {
+          await responseErrorHandler(error);
+        } catch (e) {
+          expect(e).toEqual(error);
+        }
+      });
+
+      it('rejeita erro quando response existe mas sem status 401', async () => {
+        const error = {
+          response: { status: 403 }
+        };
+
+        try {
+          await responseErrorHandler(error);
+        } catch (e) {
+          expect(e).toEqual(error);
+        }
+
+        expect(localStorageMock.removeItem).not.toHaveBeenCalled();
+        expect(window.location.href).toBe('');
+      });
     });
   });
 });
