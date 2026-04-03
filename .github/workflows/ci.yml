@@ -1,4 +1,4 @@
-name: CI
+name: Execute CI Pipeline
 
 on:
   pull_request:
