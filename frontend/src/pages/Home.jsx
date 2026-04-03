@@ -25,7 +25,14 @@ function Home() {
       
       // Buscar resumo de boletos
       const resumoRes = await boletosAPI.getResumo();
-      setResumo(resumoRes.data);
+      const resumoData = resumoRes.data || {};
+      
+      // Garantir que são números
+      setResumo({
+        totalAReceber: Number(resumoData.totalAReceber) || 0,
+        totalRecebido: Number(resumoData.totalRecebido) || 0,
+        totalGeral: Number(resumoData.totalGeral) || 0
+      });
       
       // Buscar estatísticas gerais
       const clientesRes = await clientesAPI.getAll();
@@ -37,6 +44,16 @@ function Home() {
       });
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
+      // Setar valores padrão em caso de erro
+      setResumo({
+        totalAReceber: 0,
+        totalRecebido: 0,
+        totalGeral: 0
+      });
+      setStats({
+        clientes: 0,
+        pedidos: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -60,17 +77,17 @@ function Home() {
       <div className="dashboard-grid">
         <div className="card positive">
           <h3>Total Recebido</h3>
-          <div className="value">R$ {resumo.totalRecebido?.toFixed(2) || '0.00'}</div>
+          <div className="value">R$ {(Number(resumo.totalRecebido) || 0).toFixed(2)}</div>
         </div>
 
         <div className="card negative">
           <h3>Total a Receber</h3>
-          <div className="value">R$ {resumo.totalAReceber?.toFixed(2) || '0.00'}</div>
+          <div className="value">R$ {(Number(resumo.totalAReceber) || 0).toFixed(2)}</div>
         </div>
 
         <div className="card">
-          <h3>Total de Boletos</h3>
-          <div className="value">R$ {resumo.totalGeral?.toFixed(2) || '0.00'}</div>
+          <h3>Total Geral</h3>
+          <div className="value">R$ {(Number(resumo.totalGeral) || 0).toFixed(2)}</div>
         </div>
 
         <div className="card">
@@ -88,8 +105,8 @@ function Home() {
         <h3>Resumo Financeiro</h3>
         <p>
           <strong>Taxa de Recebimento:</strong>{' '}
-          {resumo.totalGeral > 0
-            ? ((resumo.totalRecebido / resumo.totalGeral) * 100).toFixed(1)
+          {Number(resumo.totalGeral) > 0
+            ? ((Number(resumo.totalRecebido) / Number(resumo.totalGeral)) * 100).toFixed(1)
             : 0}
           %
         </p>
