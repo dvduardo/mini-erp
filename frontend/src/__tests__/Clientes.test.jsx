@@ -209,7 +209,7 @@ describe('Clientes', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalled();
+      expect(screen.getByText('Erro ao salvar cliente.')).toBeInTheDocument();
     });
   });
 
@@ -224,7 +224,7 @@ describe('Clientes', () => {
     fireEvent.click(deletarBtns[0]);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('Erro ao deletar cliente');
+      expect(screen.getByText('Erro ao deletar cliente.')).toBeInTheDocument();
     });
   });
 

@@ -90,8 +90,8 @@ describe('Boletos', () => {
     render(<Boletos />);
 
     await waitFor(() => {
-      expect(screen.getByText('R$ 100.00')).toBeInTheDocument();
-      expect(screen.getByText('R$ 250.50')).toBeInTheDocument();
+      expect(screen.getByText('R$ 100,00')).toBeInTheDocument();
+      expect(screen.getByText('R$ 250,50')).toBeInTheDocument();
     });
   });
 
@@ -276,7 +276,7 @@ describe('Boletos', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalled();
+      expect(screen.getByText('Erro ao salvar boleto.')).toBeInTheDocument();
     });
   });
 
@@ -291,7 +291,7 @@ describe('Boletos', () => {
     fireEvent.click(deletarBtns[0]);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('Erro ao deletar boleto');
+      expect(screen.getByText('Erro ao deletar boleto.')).toBeInTheDocument();
     });
   });
 
