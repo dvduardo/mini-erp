@@ -42,7 +42,7 @@ export const createCliente = async (req, res) => {
       `INSERT INTO clientes (
         nome, email, telefone, cpf_cnpj, endereco,
         razao_social, nome_fantasia, bairro, cidade, cep, inscricao_estadual
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
       [
         nome, email, telefone, cpf_cnpj, endereco,
         razao_social, nome_fantasia, bairro, cidade, cep, inscricao_estadual

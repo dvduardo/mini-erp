@@ -63,7 +63,7 @@ export const createPedido = async (req, res) => {
 
     const result = await dbRun(
       `INSERT INTO pedidos (cliente_id, numero_pedido, data_emissao, data_entrega, observacoes, endereco_entrega, bairro_entrega, cidade_entrega, cep_entrega, total_pedido)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
       [cliente_id, numero_pedido, data_emissao || null, data_entrega, observacoes, endereco_entrega, bairro_entrega, cidade_entrega, cep_entrega, total_pedido || 0]
     );
 

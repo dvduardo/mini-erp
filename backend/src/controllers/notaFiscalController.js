@@ -104,7 +104,7 @@ export const uploadNotaFiscal = async (req, res) => {
     const caminhoArquivo = `uploads/${req.file.filename}`;
     
     const result = await dbRun(
-      'INSERT INTO notas_fiscais (pedido_id, numero_nota_fiscal, caminho_arquivo) VALUES (?, ?, ?)',
+      'INSERT INTO notas_fiscais (pedido_id, numero_nota_fiscal, caminho_arquivo) VALUES (?, ?, ?) RETURNING id',
       [pedido_id, numero_nota_fiscal, caminhoArquivo]
     );
     
