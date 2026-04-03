@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const BASE = 'http://localhost:3000';
-const API = 'http://localhost:3001/api';
+const API = 'http://localhost:5001/api';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ test.describe('API Backend', () => {
       data: {
         nome: 'Cliente Teste Auto',
         email: `auto_${Date.now()}@teste.com`,
-        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0'),
+        cpf_cnpj: `${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0'),
         telefone: '11999990000'
       }
     });
@@ -44,7 +44,7 @@ test.describe('API Backend', () => {
       data: {
         nome: 'Cliente Pedido Auto',
         email: `pedido_${Date.now()}@teste.com`,
-        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+        cpf_cnpj: `${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0')
       }
     });
     const cliente = await cRes.json();
@@ -71,7 +71,7 @@ test.describe('API Backend', () => {
       data: {
         nome: 'Cliente Produto Auto',
         email: `prod_${Date.now()}@teste.com`,
-        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+        cpf_cnpj: `${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0')
       }
     });
     const cliente = await cRes.json();
@@ -106,7 +106,7 @@ test.describe('API Backend', () => {
       data: {
         nome: 'Cliente Detalhe Auto',
         email: `det_${Date.now()}@teste.com`,
-        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+        cpf_cnpj: `${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0')
       }
     });
     const cliente = await cRes.json();
@@ -145,7 +145,7 @@ test.describe('API Backend', () => {
       data: {
         nome: 'Cliente Update Auto',
         email: `upd_${Date.now()}@teste.com`,
-        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+        cpf_cnpj: `${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0')
       }
     });
     const cliente = await cRes.json();
@@ -172,7 +172,7 @@ test.describe('API Backend', () => {
       data: {
         nome: 'Cliente Del Auto',
         email: `del_${Date.now()}@teste.com`,
-        cpf_cnpj: `${Date.now()}`.slice(-14).padStart(14, '0')
+        cpf_cnpj: `${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0')
       }
     });
     const cliente = await cRes.json();
@@ -249,10 +249,10 @@ test.describe('Frontend - Clientes', () => {
 
     // Preencher CNPJ (obrigatório)
     const cnpjSection = page.locator('.form-group').filter({ has: page.locator('label:has-text("CNPJ")') });
-    await cnpjSection.locator('input').fill(`${Date.now()}`.slice(-14).padStart(14, '0'));
+    await cnpjSection.locator('input').fill(`${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0'));
 
     await page.click('button.success, button:has-text("Salvar")');
-    await page.waitForTimeout(1500);
+    await page.waitForLoadState('networkidle');
     await expect(page.locator(`td:has-text("${nomeUnico}")`)).toBeVisible({ timeout: 5000 });
   });
 });
@@ -325,38 +325,6 @@ test.describe('Frontend - Pedidos', () => {
     await expect(page.locator(`td:has-text("${numPedido}")`)).toBeVisible({ timeout: 7000 });
   });
 
-  test('modal de edição tem campo Data de Emissão', async ({ page }) => {
-    await page.goto(BASE);
-    await page.click('text=Pedidos');
-
-    // Clicar em Editar no primeiro pedido disponível
-    const editBtn = page.locator('button:has-text("Editar")').first();
-    const hasEdit = await editBtn.isVisible({ timeout: 3000 }).catch(() => false);
-
-    if (hasEdit) {
-      await editBtn.click();
-      await expect(page.locator('.modal.active, .modal-content')).toBeVisible();
-      await expect(page.locator('label:has-text("Data de Emissão")')).toBeVisible();
-    } else {
-      test.skip();
-    }
-  });
-
-  test('tela de detalhes mostra Data de Emissão', async ({ page }) => {
-    await page.goto(BASE);
-    await page.click('text=Pedidos');
-
-    const detBtn = page.locator('button:has-text("Detalhes")').first();
-    const hasDet = await detBtn.isVisible({ timeout: 3000 }).catch(() => false);
-
-    if (hasDet) {
-      await detBtn.click();
-      await expect(page.locator('text=Data de Emissão')).toBeVisible();
-    } else {
-      test.skip();
-    }
-  });
-
   test('botão Remover produto funciona no form de novo pedido', async ({ page }) => {
     await page.goto(BASE);
     await page.click('text=Pedidos');
@@ -370,5 +338,60 @@ test.describe('Frontend - Pedidos', () => {
     await page.locator('button.danger:has-text("Remover")').first().click();
     await expect(page.locator('text=Produto 2')).not.toBeVisible();
     await expect(page.locator('text=Produto 1')).toBeVisible();
+  });
+
+  test('modal de edição tem campo Data de Emissão', async ({ page, request }) => {
+    const cRes = await request.post(`${API}/clientes`, {
+      data: {
+        nome: 'Cliente Edit Modal',
+        email: `edit_modal_${Date.now()}${Math.floor(Math.random() * 1e6)}@teste.com`,
+        cpf_cnpj: `${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0'),
+      }
+    });
+    const cliente = await cRes.json();
+
+    const pRes = await request.post(`${API}/pedidos`, {
+      data: {
+        cliente_id: cliente.id,
+        numero_pedido: `PED-EDIT-${Date.now()}`,
+        data_emissao: '2026-04-01',
+      }
+    });
+    const pedido = await pRes.json();
+
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+    const row = page.locator(`tr:has-text("${pedido.numero_pedido}")`);
+    await expect(row).toBeVisible({ timeout: 5000 });
+    await row.locator('button:has-text("Editar")').click();
+    await expect(page.locator('.modal.active')).toBeVisible();
+    await expect(page.locator('label:has-text("Data de Emissão")')).toBeVisible();
+  });
+
+  test('tela de detalhes mostra Data de Emissão', async ({ page, request }) => {
+    const cRes = await request.post(`${API}/clientes`, {
+      data: {
+        nome: 'Cliente Detalhes Modal',
+        email: `det_modal_${Date.now()}${Math.floor(Math.random() * 1e6)}@teste.com`,
+        cpf_cnpj: `${Date.now()}${Math.floor(Math.random() * 1e6)}`.slice(-14).padStart(14, '0'),
+      }
+    });
+    const cliente = await cRes.json();
+
+    const pRes = await request.post(`${API}/pedidos`, {
+      data: {
+        cliente_id: cliente.id,
+        numero_pedido: `PED-DET-MODAL-${Date.now()}`,
+        data_emissao: '2026-04-01',
+      }
+    });
+    const pedido = await pRes.json();
+
+    await page.goto(BASE);
+    await page.click('text=Pedidos');
+    const row = page.locator(`tr:has-text("${pedido.numero_pedido}")`);
+    await expect(row).toBeVisible({ timeout: 5000 });
+    await row.locator('button:has-text("Detalhes")').click();
+    await expect(page.locator('text=Data de Emissão')).toBeVisible();
   });
 });

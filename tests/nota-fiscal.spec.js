@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import path from 'path';
 
 const BASE = 'http://localhost:3000';
-const API = 'http://localhost:3001/api';
+const API = 'http://localhost:5001/api';
 
 // PDF mínimo válido em bytes
 const PDF_CONTENT = Buffer.from(
@@ -365,14 +365,11 @@ test.describe('Frontend E2E - Nota Fiscal no Pedido', () => {
     await abrirDetalhesDoPedido(page);
 
     let alertMessage = '';
-    page.on('dialog', async dialog => {
+    page.once('dialog', async dialog => {
       alertMessage = dialog.message();
       await dialog.accept();
     });
-
     await page.locator('button:has-text("Anexar Nota Fiscal")').click();
-    await page.waitForTimeout(500);
-
     expect(alertMessage).toContain('PDF');
   });
 });
