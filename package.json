@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Tests for Mini ERP",
   "scripts": {
-    "build": "npm install --prefix frontend && cd frontend && npx vite build && cd ..",
+    "build": "cd frontend && NODE_ENV=development npm install && npx vite build && cd ..",
     "test": "playwright test --config tests/playwright.config.js",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug"
