@@ -1,140 +1,549 @@
-# Mini ERP 🏢
+# La Dispensa - Sistema de Gestão Artesanal 🏢
 
-Sistema simples de gestão empresarial para gerenciar clientes, pedidos, produtos, boletos e notas fiscais.
+> _Um ERP simples, intuitivo e acessível para pequenas empresas, freelancers e negócios em crescimento._
 
-## Características
+---
 
-✅ **Gestão de Clientes** - Cadastro, edição e exclusão de clientes  
-✅ **Gestão de Pedidos** - Criar pedidos associados a clientes com datas de criação e entrega  
-✅ **Gestão de Produtos** - Itens vinculados a pedidos com quantidade e valor  
-✅ **Gestão de Boletos** - Registrar boletos com vencimento e status de pagamento  
-✅ **Notas Fiscais** - Upload e armazenamento de PDFs  
-✅ **Dashboard** - Resumo financeiro com somas de boletos recebidos, a receber e total de clientes/pedidos  
+## 📑 Índice Rápido
 
-## Tech Stack
+Escolha abaixo onde você quer ir:
 
-- **Frontend**: React + Vite
-- **Backend**: Node.js + Express
-- **Database**: SQLite
+- **[👥 Para Usuários Finais](#seção-1--sobre-o-projeto-)** – Descubra o que o La Dispensa faz e como pode ajudar seu negócio
+- **[⚛️ Para Desenvolvedores Frontend](#seção-2--frontend-tecnologia--implementação-)** – Entenda como o frontend foi construído (React, Vite, Axios)
+- **[🛠️ Para Desenvolvedores Backend](#seção-3--backend-arquitetura--implementação-)** – Explore a arquitetura, banco de dados e APIs (Express, SQLite, JWT)
 
-## Instalação
+---
 
-### Backend
+## SEÇÃO 1 – Sobre o Projeto 👥
 
-```bash
-cd backend
-npm install
-npm run dev
+### O que é o La Dispensa?
+
+**La Dispensa** é um sistema web de gestão empresarial criado para resolver um problema real: **pequenas empresas controlando seu negócio em planilhas, cadernos e cacos de papel.**
+
+Quantas vezes você:
+- Perdeu uma nota com dados de um cliente?
+- Não sabia quanto tinha a receber?
+- Esqueceu o prazo de um pagamento?
+- Duvidava se um pedido já tinha sido entregue?
+
+O La Dispensa centraliza **tudo em um único lugar**: clientes, pedidos, produtos, cobranças e documentos fiscais. Tudo acessível de um computador, tablet ou celular.
+
+#### Para Quem é?
+
+✅ **Pequenas empresas** (1-50 pessoas) que crescem e precisam organizar a gestão  
+✅ **Freelancers e prestadores de serviço** que precisam controlar clientes e pagamentos  
+✅ **Negócios em startup** que querem começar simples e escalar depois  
+✅ **Estudantes de programação** aprendendo como um projeto real é estruturado  
+
+---
+
+### Funcionalidades Principais
+
+#### 🧑‍💼 Gestão de Clientes
+**Organize seus relacionamentos comerciais**
+
+Cadastre clientes com todos os dados relevantes. Veja o histórico de pedidos, pagamentos e interações tudo em um lugar. Nunca mais perca informações de contato ou confunda detalhes de um cliente.
+
+![Tela de Clientes](./docs/screenshots/03-clientes.png)
+_Gerência de clientes com visão centralizada de todos os contatos do seu negócio._
+
+#### 📦 Gestão de Pedidos
+**Acompanhe cada pedido desde a criação até a entrega**
+
+Crie pedidos vinculados aos clientes, adicione produtos, estabeleça datas de emissão e entrega. Mantenha controle total do ciclo de vida de cada pedido.
+
+![Tela de Pedidos](./docs/screenshots/05-pedidos.png)
+_Lista completa de pedidos com status e detalhes._
+
+#### 💰 Gestão de Boletos
+**Rastreie suas cobranças e recebimentos**
+
+Registre todos os boletos, acompanhe vencimentos, marque como recebido. Veja rapidamente quanto você já recebeu e quanto ainda falta receber.
+
+![Tela de Boletos](./docs/screenshots/07-boletos.png)
+_Resumo de boletos com filtro por status (recebido/a receber)._
+
+#### 📄 Notas Fiscais
+**Organize seus documentos fiscais em um só lugar**
+
+Upload simples de PDFs de notas fiscais. Mantenha tudo organizado e fácil de encontrar quando precisar.
+
+#### 📊 Dashboard Financeiro
+**Veja o resumo do seu negócio em segundos**
+
+KPIs principais no topo: total recebido, total a receber, total geral, quantidade de clientes e pedidos. Uma visão rápida de como está o negócio.
+
+![Dashboard Inicial](./docs/screenshots/02-dashboard.png)
+_Dashboard financeiro com resumo executivo._
+
+---
+
+### Fluxo de Uso – Passo a Passo
+
+Usar o La Dispensa é simples assim:
+
+1. **Crie uma Conta** → Faça seu login e configure seu workspace
+2. **Cadastre Clientes** → Adicione informações dos seus clientes (nome, email, telefone, endereço)
+3. **Crie Pedidos** → Novo pedido → escolha o cliente → defina data de emissão e entrega
+4. **Adicione Produtos/Itens** → Para cada pedido, indique os produtos, quantidade e valor
+5. **Registre Cobranças** → Crie boletos para o pedido com data de vencimento
+6. **Acompanhe Pagamentos** → Marque os boletos como recebidos conforme os clientes pagam
+7. **Visualize o Dashboard** → Veja em tempo real quanto já entrou de dinheiro
+
+**Simples assim!** Nenhuma complexidade desnecessária.
+
+---
+
+### Benefícios
+
+| Benefício | Descrição |
+|-----------|-----------|
+| 🏢 **Organização Centralizada** | Todos os dados do negócio em um único lugar |
+| 📈 **Controle Financeiro** | Saiba exatamente quanto tem a receber e quanto já recebeu |
+| 🔒 **Seguro e Confiável** | Autenticação JWT, dados persistidos em banco de dados |
+| 📱 **Acessível em Qualquer Lugar** | Web app funciona em desktop, tablet e celular |
+| ⚡ **Rápido e Responsivo** | Interface fluida, sem esperas, sem lentidão |
+| 📊 **Escalável** | Comece simples, cresça conforme sua necessidade |
+| 💰 **Gratuito e Aberto** | Código aberto, sem custos de licença |
+
+---
+
+## SEÇÃO 2 – Frontend: Tecnologia & Implementação ⚛️
+
+### Por que React + Vite?
+
+Escolhemos essa stack por uma razão simples: **velocidade + qualidade + comunidade ativa.**
+
+- **React** → Componentes reutilizáveis, estado gerenciável, enorme comunidade
+- **Vite** → Servidor de dev MUITO rápido, build otimizado, HMR instantâneo
+
+### Tech Stack Frontend
+
+| Tecnologia | Versão | Por que foi escolhida |
+|-----------|--------|----------------------|
+| **React** | 18.2.0 | Framework principal para UI componentizada |
+| **Vite** | 4.5.14 | Build tool ultra-rápido e dev server instantâneo |
+| **Axios** | 1.3.4 | HTTP client simples e robusto para chamar API |
+| **Vitest** | 4.1.2 | Testes unitários rápidos, integração perfeita com Vite |
+| **Playwright** | 1.59.1 | Testes end-to-end para validar fluxos críticos |
+
+### Estrutura do Projeto Frontend
+
+```
+frontend/
+├── src/
+│   ├── components/          # Componentes reutilizáveis
+│   │   ├── Navbar.jsx       # Barra de navegação
+│   │   └── ...              # Outros componentes
+│   │
+│   ├── pages/               # Páginas principais (roteamento)
+│   │   ├── Login.jsx        # Página de login
+│   │   ├── Home.jsx         # Dashboard
+│   │   ├── Clientes.jsx     # Gestão de clientes
+│   │   ├── Pedidos.jsx      # Gestão de pedidos
+│   │   ├── Boletos.jsx      # Gestão de boletos
+│   │   └── ...
+│   │
+│   ├── services/            # Chamadas à API (Axios)
+│   │   ├── api.js           # Configuração Axios + interceptors
+│   │   ├── clientesAPI.js   # Endpoints /api/clientes
+│   │   ├── pedidosAPI.js    # Endpoints /api/pedidos
+│   │   └── ...
+│   │
+│   ├── context/             # Context API para estado global
+│   │   └── AuthContext.jsx  # Contexto de autenticação
+│   │
+│   ├── styles/              # CSS global e de páginas
+│   ├── App.jsx              # Componente raiz
+│   └── main.jsx             # Entrada da aplicação
+│
+├── public/
+├── vite.config.js           # Configuração Vite
+├── vitest.config.js         # Configuração Vitest
+├── package.json
+└── index.html               # HTML principal (SPA)
 ```
 
-O servidor rodará em `http://localhost:5001`
+### Padrões de Implementação
 
-### Frontend
+#### 1. **Component-Based Architecture**
+Cada página/funcionalidade é um componente React com estado local (`useState`) e efeitos (`useEffect`).
+
+```jsx
+function Clientes() {
+  const [clientes, setClientes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    clientesAPI.getAll()
+      .then(res => setClientes(res.data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div>
+      {loading ? <p>Carregando...</p> : <ClientesList clientes={clientes} />}
+    </div>
+  );
+}
+```
+
+#### 2. **Service Layer para API**
+Todas as chamadas HTTP são centralizadas em `src/services/api.js`:
+
+```jsx
+// services/api.js
+const api = axios.create({
+  baseURL: 'http://localhost:5001/api'
+});
+
+// Interceptor: adiciona JWT em toda requisição
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Exemplo: clientesAPI
+export const clientesAPI = {
+  getAll: () => api.get('/clientes'),
+  getById: (id) => api.get(`/clientes/${id}`),
+  create: (data) => api.post('/clientes', data),
+  update: (id, data) => api.put(`/clientes/${id}`, data),
+  delete: (id) => api.delete(`/clientes/${id}`)
+};
+```
+
+#### 3. **Autenticação com Context + LocalStorage**
+O `AuthContext` gerencia login, logout e persistência de sessão:
+
+```jsx
+const { user, isAuthenticated, login, logout } = useAuth();
+
+// Login persiste o token em localStorage
+// Logout remove o token e limpa o contexto
+// User é validado automaticamente ao carregar a app
+```
+
+#### 4. **Modais e Formulários**
+Cada entidade (Cliente, Pedido, etc) tem um modal para criar/editar, acionado com `handleOpenModal()`.
+
+### Destaques Técnicos
+
+✅ **Interceptadores Axios** – Captura automaticamente erros 401 (token expirado) e redireciona para login  
+✅ **Modal System** – Componentes modais reutilizáveis para CRUD operations  
+✅ **Form Validation** – Validação client-side antes de enviar para API  
+✅ **Error Handling** – Mensagens de erro amigáveis em cada operação  
+✅ **Loading States** – Indicadores visuais durante requisições de API  
+✅ **Testes Unitários** – Vitest covers componentes críticos  
+✅ **Testes E2E** – Playwright valida fluxos principais (login, CRUD, etc)  
+
+### Como Rodar Localmente
 
 ```bash
 cd frontend
 npm install
 npm run dev
+
+# Aplicação abre em http://localhost:5173
 ```
 
-A aplicação será aberta em `http://localhost:3000`
-
-## Estrutura do Projeto
-
+**Outros comandos úteis:**
+```bash
+npm run build      # Build otimizado para produção
+npm test           # Roda testes Vitest
+npm run test:ui    # Abre UI visual para Vitest
 ```
-mini-erp/
-├── backend/
-│   ├── src/
-│   │   ├── config/          # Configuração do banco de dados
-│   │   ├── controllers/     # Lógica das rotas (CRUD)
-│   │   │   ├── clienteController.js
-│   │   │   ├── pedidoController.js
-│   │   │   ├── produtoController.js
-│   │   │   ├── boletoController.js
-│   │   │   └── notaFiscalController.js
-│   │   ├── routes/          # Definição das rotas da API
-│   │   │   ├── clienteRoutes.js
-│   │   │   ├── pedidoRoutes.js
-│   │   │   ├── produtoRoutes.js
-│   │   │   ├── boletoRoutes.js
-│   │   │   └── notaFiscalRoutes.js
-│   │   └── app.js           # Setup do Express
-│   ├── migrations/          # Scripts de inicialização do BD
-│   ├── uploads/             # Armazenamento de notas fiscais
-│   └── server.js            # Entrada da aplicação
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # Componentes reutilizáveis
-│   │   ├── pages/           # Páginas principais
-│   │   ├── services/        # Chamadas para API
-│   │   └── App.jsx
-│   └── index.html
-└── README.md
-```
-
-## API Endpoints
-
-### Clientes
-- `GET /api/clientes` - Listar todos
-- `GET /api/clientes/:id` - Obter um cliente
-- `POST /api/clientes` - Criar novo
-- `PUT /api/clientes/:id` - Atualizar
-- `DELETE /api/clientes/:id` - Deletar
-
-### Pedidos
-- `GET /api/pedidos` - Listar todos
-- `GET /api/pedidos/:id` - Obter um pedido
-- `POST /api/pedidos` - Criar novo
-- `PUT /api/pedidos/:id` - Atualizar
-- `DELETE /api/pedidos/:id` - Deletar
-
-### Produtos
-- `GET /api/produtos/pedido/:pedido_id` - Listar produtos de um pedido
-- `GET /api/produtos/:id` - Obter um produto
-- `POST /api/produtos` - Criar novo
-- `PUT /api/produtos/:id` - Atualizar
-- `DELETE /api/produtos/:id` - Deletar
-
-### Boletos
-- `GET /api/boletos` - Listar todos (com filtro de status opcional)
-- `GET /api/boletos/:id` - Obter um boleto
-- `GET /api/boletos/resumo/financeiro` - Resumo de boletos (para dashboard)
-- `POST /api/boletos` - Criar novo
-- `PUT /api/boletos/:id` - Atualizar
-- `DELETE /api/boletos/:id` - Deletar
-
-### Notas Fiscais
-- `GET /api/notas-fiscais` - Listar todas
-- `GET /api/notas-fiscais/:id` - Obter uma nota
-- `POST /api/notas-fiscais/upload` - Upload de PDF
-- `DELETE /api/notas-fiscais/:id` - Deletar
-
-## Fluxo de Uso
-
-1. **Cadastre Clientes** - Acesse a aba "Clientes" e adicione novos clientes
-2. **Crie Pedidos** - Na aba "Pedidos", crie um novo pedido relacionando com um cliente
-3. **Adicione Produtos** - Vincule produtos/itens ao pedido com quantidade e valor
-4. **Registre Boletos** - Na aba "Boletos", crie boletos para o pedido com valor e data de vencimento
-5. **Marque como Recebido** - Use o checkbox na tabela de boletos para marcar quando receber
-6. **Acompanhe Dashboard** - Veja o resumo financeiro na página inicial
-
-## Notas Importantes
-
-- O banco de dados SQLite é criado automaticamente na primeira execução
-- Todas as datas são armazenadas em UTC
-- Notas fiscais são armazenadas em `/backend/uploads/`
-- Soft delete para clientes (mantém histórico)
-
-## Próximas Melhorias
-
-- [ ] Autenticação de usuários
-- [ ] Geração automática de boletos
-- [ ] Integração com bancos para validação de boletos
-- [ ] Relatórios PDF
-- [ ] Backup automático do banco
-- [ ] Temas escuro/claro
-- [ ] Modo offline
 
 ---
 
-**Desenvolvido para gerenciar pequenos negócios** 💼
+## SEÇÃO 3 – Backend: Arquitetura & Implementação 🛠️
+
+### Por que Express + SQLite?
+
+- **Express** → Minimalista, fácil de estender, perfeito para MVPs e APIs REST
+- **SQLite** → Zero setup, self-contained file, ideal para small-to-medium apps
+
+Ambos são simples mas poderosos o suficiente para projetos em crescimento.
+
+### Tech Stack Backend
+
+| Tecnologia | Versão | Por que foi escolhida |
+|-----------|--------|----------------------|
+| **Express** | 4.18.2 | Framework web minimalista para REST API |
+| **SQLite3** | 5.1.6 | Banco de dados file-based, zero config |
+| **jsonwebtoken** | 9.0.3 | Autenticação JWT (stateless, escalável) |
+| **bcryptjs** | 3.0.3 | Hash seguro de senhas (defesa contra rainbow table attacks) |
+| **Vitest** | 4.1.2 | Testes unitários rápidos para controllers e services |
+
+### Padrão Arquitetural: MVC
+
+```
+backend/src/
+├── config/
+│   └── database.js       # Conexão SQLite + execução de migrations
+│
+├── middleware/
+│   ├── auth.js          # Autenticação JWT
+│   └── ...              # Outros middlewares
+│
+├── controllers/         # LÓGICA DE NEGÓCIO
+│   ├── authController.js     # Login, register, validação
+│   ├── clienteController.js  # CRUD de clientes (com soft delete)
+│   ├── pedidoController.js   # CRUD de pedidos
+│   ├── produtoController.js  # CRUD de produtos
+│   ├── boletoController.js   # CRUD de boletos + resumo financeiro
+│   └── notaFiscalController.js # Upload e gestão de PDFs
+│
+├── routes/              # ENDPOINTS HTTP
+│   ├── authRoutes.js
+│   ├── clienteRoutes.js
+│   ├── pedidoRoutes.js
+│   ├── produtoRoutes.js
+│   ├── boletoRoutes.js
+│   └── notaFiscalRoutes.js
+│
+├── migrations/          # SCHEMA (criação de tabelas)
+│   ├── 00_init.sql             # Tabelas principais
+│   ├── 01_alter_clientes_add_fields.sql
+│   ├── 02_alter_pedidos_add_data_emissao.sql
+│   └── ...
+│
+└── app.js              # Setup Express (rotas, middlewares)
+```
+
+**Fluxo:**
+1. **Request HTTP** entra em `server.js`
+2. **Express** roteia para `routes/` apropriado
+3. **Routes** chama controller
+4. **Controller** executa a lógica (validações, cálculos) e acessa o BD
+5. **Database** retorna dados
+6. **Response** é enviada em JSON
+
+### Database Schema (Resumido)
+
+```sql
+-- Usuários (para autenticação)
+users (id, username, password_hash, email, created_at)
+
+-- Clientes (soft delete: deleted_at)
+clientes (id, nome, email, telefone, endereco, razao_social, deleted_at)
+
+-- Pedidos (relacionados a clientes)
+pedidos (id, cliente_id, numero, total, data_emissao, data_entrega, endereco_entrega)
+  ↓ FK(cliente_id) → clientes(id)
+
+-- Produtos (items de um pedido)
+produtos (id, pedido_id, descricao, quantidade, valor_unitário)
+  ↓ FK(pedido_id) → pedidos(id)
+
+-- Boletos (cobranças, relacionados a pedidos)
+boletos (id, pedido_id, numero_boleto, valor, data_emissao, data_vencimento, status_pagamento)
+  ↓ FK(pedido_id) → pedidos(id)
+
+-- Notas Fiscais (PDFs, relacionados a pedidos)
+notas_fiscais (id, pedido_id, caminho_arquivo, data_upload)
+  ↓ FK(pedido_id) → pedidos(id)
+```
+
+**Relacionamentos:**
+```
+usuarios
+clientes ← pedidos ← (produtos, boletos, notas_fiscais)
+```
+
+### Destaques de Implementação
+
+#### ✅ Soft Delete
+Clientes não são deletados realmente; usa-se `deleted_at`:
+```sql
+DELETE FROM clientes WHERE id = ?  -- Não faz isto!
+UPDATE clientes SET deleted_at = NOW() WHERE id = ?  -- Faz isto!
+```
+Preserva histórico e referências de pedidos históricos.
+
+#### ✅ Migrations Versionadas
+Cada mudança no schema é um arquivo SQL numerado. Ao iniciar, o backend executa todas as ainda não executadas.
+```
+00_init.sql             → Tabelas base
+01_alter_clientes...sql → Adiciona campo razao_social
+02_alter_pedidos...sql  → Adiciona data_emissao
+```
+
+#### ✅ JWT Stateless
+Não há sessão no servidor. Cada requisição vem com `Authorization: Bearer {token}`, que é validado e decodificado.
+```javascript
+// middleware/auth.js
+const decoded = jwt.verify(token, JWT_SECRET);
+req.userId = decoded.userId; // Disponível no controller
+```
+
+#### ✅ Upload de Arquivos
+Notas Fiscais são PDFs salvos em `/backend/uploads/` com nome único (UUID + extensão).
+Usa `multer` para multipart/form-data.
+
+#### ✅ Resumo Financeiro
+Endpoint especial `/api/boletos/resumo/financeiro` que calcula agregações:
+```sql
+SELECT
+  SUM(CASE WHEN status = 'pago' THEN valor ELSE 0 END) as total_recebido,
+  SUM(CASE WHEN status != 'pago' THEN valor ELSE 0 END) as total_a_receber
+FROM boletos;
+```
+
+### API Endpoints
+
+#### 🔐 Autenticação
+```
+POST   /api/auth/register       → Cria novo usuário
+POST   /api/auth/login          → Retorna JWT
+POST   /api/auth/logout         → Invalida sessão
+GET    /api/auth/me             → Valida token (utilizado no frontend)
+```
+
+#### 👥 Clientes
+```
+GET    /api/clientes            → Lista todos (exceto soft deleted)
+GET    /api/clientes/:id        → Detalhes de um
+POST   /api/clientes            → Criar novo
+PUT    /api/clientes/:id        → Editar
+DELETE /api/clientes/:id        → Soft delete
+```
+
+#### 📦 Pedidos
+```
+GET    /api/pedidos             → Lista todos
+GET    /api/pedidos/:id         → Detalhes
+POST   /api/pedidos             → Criar novo com cliente_id
+PUT    /api/pedidos/:id         → Atualizar
+DELETE /api/pedidos/:id         → Deletar
+```
+
+#### 📦 Produtos
+```
+GET    /api/produtos/pedido/:pedido_id  → Items de um pedido
+GET    /api/produtos/:id                → Detalhes
+POST   /api/produtos                    → Criar
+PUT    /api/produtos/:id                → Editar
+DELETE /api/produtos/:id                → Deletar
+```
+
+#### 💰 Boletos
+```
+GET    /api/boletos                     → Lista todos
+GET    /api/boletos?status=pago         → Filtrado por status
+GET    /api/boletos/:id                 → Detalhes
+GET    /api/boletos/resumo/financeiro   → KPIs (total recebido, a receber, etc)
+POST   /api/boletos                     → Criar
+PUT    /api/boletos/:id                 → Editar (marcar como pago, mudar data, etc)
+DELETE /api/boletos/:id                 → Deletar
+```
+
+#### 📄 Notas Fiscais
+```
+GET    /api/notas-fiscais               → Lista
+GET    /api/notas-fiscais/:id           → Info de um
+POST   /api/notas-fiscais/upload        → Upload de PDF (multipart)
+DELETE /api/notas-fiscais/:id           → Deletar
+```
+
+### Como Rodar Localmente
+
+```bash
+cd backend
+npm install
+npm run dev
+
+# Servidor sobe em http://localhost:5001
+# API disponível em http://localhost:5001/api
+```
+
+**Ao iniciar:**
+1. Verifica se `database.sqlite` existe (se não, cria)
+2. Executa todas as migrations em `./migrations/`
+3. Server escuta na porta 5001
+
+**Outros comandos:**
+```bash
+npm test              # Roda testes Vitest
+npm run test:coverage # Mostra cobertura de código
+```
+
+### Variáveis de Ambiente
+
+```bash
+# .env (criar na raiz de /backend)
+PORT=5001
+NODE_ENV=development
+JWT_SECRET=sua-chave-super-secreta-mudeme-em-producao
+DATABASE_URL=  # Deixe vazio para usar SQLite local
+```
+
+---
+
+## 🚀 Instalação Completa (Backend + Frontend)
+
+### 1. Clone o Repositório
+```bash
+git clone <repo-url> mini-erp
+cd mini-erp
+```
+
+### 2. Backend
+```bash
+cd backend
+npm install
+npm run dev
+```
+Servidor rodará em `http://localhost:5001`
+
+### 3. Frontend (nova aba/terminal)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Aplicação abre em `http://localhost:5173`
+
+### 4. Pronto! 🎉
+Acesse `http://localhost:5173` em seu navegador e comece!
+
+---
+
+## 📋 Notas Importantes
+
+- **Banco de Dados**: SQLite é criado automaticamente em `/backend/database.sqlite`
+- **Migrations**: Executadas automaticamente ao iniciar o backend
+- **JWT Secret**: Mude em produção! (variável `JWT_SECRET`)
+- **CORS**: Frontend acessa API em `http://localhost:5001` (desenvolvido localmente em `http://localhost:5173`)
+- **Upload de Arquivos**: Notas Fiscais salvas em `/backend/uploads/` (criar pasta se não existir)
+- **Soft Delete**: Clientes deletados mantêm histórico (campo `deleted_at`)
+
+---
+
+## 🔮 Próximas Melhorias
+
+- [ ] Autenticação multi-usuário (permissões e roles)
+- [ ] Geração automática de boletos via API de bancos
+- [ ] Integração com serviços de pagamento
+- [ ] Relatórios PDF personalizados
+- [ ] Backup automático do banco de dados
+- [ ] Temas escuro/claro
+- [ ] Modo offline com sincronização
+- [ ] Notificações de vencimento de boletos
+- [ ] Exportação de dados (CSV, Excel, PDF)
+- [ ] Integração com contador/contabilidade
+
+---
+
+## 📄 Licença
+
+Este projeto é aberto e livre. Sinta-se à vontade para usar, modificar e distribuir. 
+
+---
+
+**Desenvolvido com ❤️ para pequenas empresas que querem crescer.**
+
+Para dúvidas ou sugestões, abra uma issue no repositório!
