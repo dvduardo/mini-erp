@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { boletosAPI, pedidosAPI } from '../services/api';
+import Toast from '../components/Toast';
+import { formatBRL } from '../utils/format';
 
 function Boletos() {
   const [boletos, setBoletos] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [pedidos, setPedidos] = useState([]);
@@ -76,24 +79,23 @@ function Boletos() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      const data = {
-        ...formData,
-        valor: parseFloat(formData.valor)
-      };
+      const data = { ...formData, valor: parseFloat(formData.valor) };
 
       if (editingId) {
         await boletosAPI.update(editingId, data);
+        setToast({ message: 'Boleto atualizado com sucesso!', type: 'success' });
       } else {
         await boletosAPI.create(data);
+        setToast({ message: 'Boleto criado com sucesso!', type: 'success' });
       }
-      
+
       loadBoletos();
       handleCloseModal();
     } catch (error) {
       console.error('Erro ao salvar boleto:', error);
-      alert('Erro ao salvar boleto: ' + error.response?.data?.error || error.message);
+      setToast({ message: 'Erro ao salvar boleto.', type: 'error' });
     }
   };
 
@@ -102,9 +104,10 @@ function Boletos() {
       try {
         await boletosAPI.delete(id);
         loadBoletos();
+        setToast({ message: 'Boleto removido.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar boleto:', error);
-        alert('Erro ao deletar boleto');
+        setToast({ message: 'Erro ao deletar boleto.', type: 'error' });
       }
     }
   };
@@ -113,26 +116,25 @@ function Boletos() {
     try {
       const novoStatus = boleto.status_pagamento === 'pendente' ? 'recebido' : 'pendente';
       const dataPagamento = novoStatus === 'recebido' ? new Date().toISOString().split('T')[0] : null;
-      
-      await boletosAPI.update(boleto.id, {
-        status_pagamento: novoStatus,
-        data_pagamento: dataPagamento
-      });
-      
+
+      await boletosAPI.update(boleto.id, { status_pagamento: novoStatus, data_pagamento: dataPagamento });
       loadBoletos();
+      setToast({ message: `Boleto marcado como ${novoStatus}.`, type: 'success' });
     } catch (error) {
       console.error('Erro ao atualizar boleto:', error);
+      setToast({ message: 'Erro ao atualizar status.', type: 'error' });
     }
   };
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="page-header">
         <h2>Boletos</h2>
         <button onClick={() => handleOpenModal()}>+ Novo Boleto</button>
       </div>
 
-      <div className="form-group" style={{ marginBottom: '20px' }}>
+      <div className="form-group" style={{ marginBottom: '20px', maxWidth: '220px' }}>
         <label>Filtrar por status:</label>
         <select
           value={filtro}
@@ -148,7 +150,10 @@ function Boletos() {
       {loading ? (
         <p className="loading">Carregando boletos...</p>
       ) : boletos.length === 0 ? (
-        <p className="empty">Nenhum boleto cadastrado</p>
+        <div className="empty-state">
+          <p>{filtro ? `Nenhum boleto com status "${filtro}".` : 'Nenhum boleto cadastrado ainda.'}</p>
+          {!filtro && <button onClick={() => handleOpenModal()}>+ Criar primeiro boleto</button>}
+        </div>
       ) : (
         <div className="table-container">
           <table>
@@ -170,7 +175,7 @@ function Boletos() {
                   <td>{boleto.numero_boleto || '-'}</td>
                   <td>{boleto.numero_pedido}</td>
                   <td>{boleto.cliente_nome}</td>
-                  <td>R$ {(Number(boleto.valor) || 0).toFixed(2)}</td>
+                  <td>R$ {formatBRL(boleto.valor)}</td>
                   <td>{new Date(boleto.data_vencimento).toLocaleDateString('pt-BR')}</td>
                   <td>{boleto.status_pagamento}</td>
                   <td>
@@ -182,8 +187,10 @@ function Boletos() {
                     />
                   </td>
                   <td>
-                    <button onClick={() => handleOpenModal(boleto)}>Editar</button>
-                    <button className="danger" onClick={() => handleDelete(boleto.id)}>Deletar</button>
+                    <div className="btn-group">
+                      <button onClick={() => handleOpenModal(boleto)}>Editar</button>
+                      <button className="danger" onClick={() => handleDelete(boleto.id)}>Deletar</button>
+                    </div>
                   </td>
                 </tr>
               ))}

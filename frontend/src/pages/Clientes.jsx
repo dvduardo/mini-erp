@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { clientesAPI } from '../services/api';
+import Toast from '../components/Toast';
 
 function Clientes() {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -66,19 +68,21 @@ function Clientes() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       if (editingId) {
         await clientesAPI.update(editingId, formData);
+        setToast({ message: 'Cliente atualizado com sucesso!', type: 'success' });
       } else {
         await clientesAPI.create(formData);
+        setToast({ message: 'Cliente criado com sucesso!', type: 'success' });
       }
-      
+
       loadClientes();
       handleCloseModal();
     } catch (error) {
       console.error('Erro ao salvar cliente:', error);
-      alert('Erro ao salvar cliente: ' + error.response?.data?.error || error.message);
+      setToast({ message: 'Erro ao salvar cliente.', type: 'error' });
     }
   };
 
@@ -87,15 +91,17 @@ function Clientes() {
       try {
         await clientesAPI.delete(id);
         loadClientes();
+        setToast({ message: 'Cliente removido.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar cliente:', error);
-        alert('Erro ao deletar cliente');
+        setToast({ message: 'Erro ao deletar cliente.', type: 'error' });
       }
     }
   };
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="page-header">
         <h2>Clientes</h2>
         <button onClick={() => handleOpenModal()}>+ Novo Cliente</button>
@@ -104,7 +110,10 @@ function Clientes() {
       {loading ? (
         <p className="loading">Carregando clientes...</p>
       ) : clientes.length === 0 ? (
-        <p className="empty">Nenhum cliente cadastrado</p>
+        <div className="empty-state">
+          <p>Nenhum cliente cadastrado ainda.</p>
+          <button onClick={() => handleOpenModal()}>+ Cadastrar primeiro cliente</button>
+        </div>
       ) : (
         <div className="table-container">
           <table>
@@ -127,13 +136,10 @@ function Clientes() {
                   <td>{cliente.telefone || '-'}</td>
                   <td>{cliente.cidade || '-'}</td>
                   <td>
-                    <button onClick={() => handleOpenModal(cliente)}>Editar</button>
-                    <button 
-                      className="danger" 
-                      onClick={() => handleDelete(cliente.id)}
-                    >
-                      Deletar
-                    </button>
+                    <div className="btn-group">
+                      <button onClick={() => handleOpenModal(cliente)}>Editar</button>
+                      <button className="danger" onClick={() => handleDelete(cliente.id)}>Deletar</button>
+                    </div>
                   </td>
                 </tr>
               ))}
