@@ -33,7 +33,10 @@ CREATE TABLE pedidos (
   status TEXT DEFAULT 'pendente',
   observacoes TEXT,
   total_pedido DECIMAL(10,2) DEFAULT 0,
-  endereco_entrega TEXT
+  endereco_entrega TEXT,
+  bairro_entrega TEXT,
+  cidade_entrega TEXT,
+  cep_entrega TEXT
 );
 
 -- Recriar tabela de produtos do pedido
@@ -43,8 +46,15 @@ CREATE TABLE pedido_produtos (
   id SERIAL PRIMARY KEY,
   pedido_id INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
   produto_id INTEGER,
+  produto_receber TEXT,
+  embalagem TEXT,
+  cod_fornecedor TEXT,
+  cod_seq TEXT,
   quantidade INTEGER NOT NULL,
   valor_unitario DECIMAL(10,2),
+  valor_item DECIMAL(10,2),
+  custo_bruto DECIMAL(10,2),
+  valor_icms_st DECIMAL(10,2),
   subtotal DECIMAL(10,2)
 );
 
