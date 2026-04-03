@@ -39,7 +39,8 @@ describe('clienteController', () => {
       const res = createRes();
       await getClientes(req, res);
 
-      expect(dbAll).toHaveBeenCalledWith(expect.stringContaining('WHERE ativo = 1'));
+      // Accept both SQLite (1) and PostgreSQL (true) boolean styles
+      expect(dbAll).toHaveBeenCalledWith(expect.stringMatching(/WHERE ativo = (1|true)/));
       expect(res.json).toHaveBeenCalledWith(clientes);
     });
 
@@ -280,7 +281,8 @@ describe('clienteController', () => {
       const res = createRes();
       await deleteCliente(req, res);
 
-      expect(dbRun).toHaveBeenCalledWith('UPDATE clientes SET ativo = 0 WHERE id = ?', ['1']);
+      // Accept both SQLite (0) and PostgreSQL (false) boolean styles
+      expect(dbRun).toHaveBeenCalledWith(expect.stringMatching(/UPDATE clientes SET ativo = (0|false) WHERE id = \?/), ['1']);
       expect(res.json).toHaveBeenCalledWith({ message: 'Cliente deletado com sucesso' });
     });
 

@@ -1,0 +1,106 @@
+- generic [ref=e24]:
+  - navigation [ref=e25]:
+    - heading "📊 Mini ERP" [level=1] [ref=e26]
+    - list [ref=e27]:
+      - listitem [ref=e28]:
+        - button "🏠 Dashboard" [ref=e29] [cursor=pointer]
+      - listitem [ref=e30]:
+        - button "👥 Clientes" [ref=e31] [cursor=pointer]
+      - listitem [ref=e32]:
+        - button "📦 Pedidos" [ref=e33] [cursor=pointer]
+      - listitem [ref=e34]:
+        - button "💰 Boletos" [ref=e35] [cursor=pointer]
+      - listitem [ref=e36]:
+        - generic [ref=e37]: 👤 testuser
+        - button "🚪 Sair" [ref=e38] [cursor=pointer]
+  - main [ref=e39]:
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - heading "Pedidos" [level=2] [ref=e136]
+        - button "+ Novo Pedido" [active] [ref=e137] [cursor=pointer]
+      - paragraph [ref=e138]: Nenhum pedido cadastrado
+      - generic [ref=e140]:
+        - heading "Novo Pedido" [level=3] [ref=e141]
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - generic [ref=e145]: Cliente *
+              - combobox [ref=e146]:
+                - option "Selecione um cliente"
+                - option "Local Test Client" [selected]
+            - generic [ref=e147]:
+              - generic [ref=e148]: Número do Pedido *
+              - textbox [ref=e149]
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - generic [ref=e152]: Data de Emissão
+              - textbox [ref=e153]
+            - generic [ref=e154]:
+              - generic [ref=e155]: Data de Entrega
+              - textbox [ref=e156]
+          - generic [ref=e158]:
+            - generic [ref=e159]: Total do Pedido (R$)
+            - spinbutton [ref=e160]
+          - generic [ref=e161]:
+            - generic [ref=e162]:
+              - generic [ref=e163]: Endereço de Entrega
+              - textbox [ref=e164]
+            - generic [ref=e165]:
+              - generic [ref=e166]: Bairro
+              - textbox [ref=e167]
+          - generic [ref=e168]:
+            - generic [ref=e169]:
+              - generic [ref=e170]: Cidade
+              - textbox [ref=e171]
+            - generic [ref=e172]:
+              - generic [ref=e173]: CEP
+              - textbox [ref=e174]
+          - generic [ref=e176]:
+            - generic [ref=e177]: Status
+            - combobox [ref=e178]:
+              - option "Pendente" [selected]
+              - option "Em Preparação"
+              - option "Entregue"
+          - generic [ref=e180]:
+            - generic [ref=e181]: Observações
+            - textbox [ref=e182]
+          - generic [ref=e183]:
+            - generic [ref=e184]:
+              - heading "Produtos do Pedido *" [level=4] [ref=e185]
+              - button "+ Adicionar Produto" [ref=e186] [cursor=pointer]
+            - generic [ref=e187]:
+              - strong [ref=e188]: Produto 1
+              - generic [ref=e189]:
+                - generic [ref=e190]:
+                  - generic [ref=e191]: Produto a Receber *
+                  - textbox [ref=e192]
+                - generic [ref=e193]:
+                  - generic [ref=e194]: Embalagem
+                  - textbox [ref=e195]
+              - generic [ref=e196]:
+                - generic [ref=e197]:
+                  - generic [ref=e198]: Cód. Fornecedor
+                  - textbox [ref=e199]
+                - generic [ref=e200]:
+                  - generic [ref=e201]: Cód. Seq
+                  - textbox [ref=e202]
+              - generic [ref=e203]:
+                - generic [ref=e204]:
+                  - generic [ref=e205]: Quantidade *
+                  - spinbutton [ref=e206]
+                - generic [ref=e207]:
+                  - generic [ref=e208]: Valor Unitário (R$) *
+                  - spinbutton [ref=e209]
+                - generic [ref=e210]:
+                  - generic [ref=e211]: Valor Item (R$) *
+                  - spinbutton [ref=e212]
+              - generic [ref=e213]:
+                - generic [ref=e214]:
+                  - generic [ref=e215]: Custo Bruto (R$)
+                  - spinbutton [ref=e216]
+                - generic [ref=e217]:
+                  - generic [ref=e218]: Valor ICMS ST (R$)
+                  - spinbutton [ref=e219]
+          - generic [ref=e220]:
+            - button "Cancelar" [ref=e221] [cursor=pointer]
+            - button "Salvar" [ref=e222] [cursor=pointer]

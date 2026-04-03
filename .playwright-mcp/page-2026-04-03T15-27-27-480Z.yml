@@ -1,0 +1,39 @@
+- generic [ref=e24]:
+  - navigation [ref=e25]:
+    - heading "📊 Mini ERP" [level=1] [ref=e26]
+    - list [ref=e27]:
+      - listitem [ref=e28]:
+        - button "🏠 Dashboard" [ref=e29] [cursor=pointer]
+      - listitem [ref=e30]:
+        - button "👥 Clientes" [ref=e31] [cursor=pointer]
+      - listitem [ref=e32]:
+        - button "📦 Pedidos" [ref=e33] [cursor=pointer]
+      - listitem [ref=e34]:
+        - button "💰 Boletos" [ref=e35] [cursor=pointer]
+      - listitem [ref=e36]:
+        - generic [ref=e37]: 👤 testuser
+        - button "🚪 Sair" [ref=e38] [cursor=pointer]
+  - main [ref=e39]:
+    - generic [ref=e63]:
+      - generic [ref=e64]:
+        - heading "Clientes" [level=2] [ref=e65]
+        - button "+ Novo Cliente" [ref=e66] [cursor=pointer]
+      - table [ref=e115]:
+        - rowgroup [ref=e116]:
+          - row "Nome Fantasia Razão Social CNPJ Telefone Cidade Ações" [ref=e117]:
+            - columnheader "Nome Fantasia" [ref=e118]
+            - columnheader "Razão Social" [ref=e119]
+            - columnheader "CNPJ" [ref=e120]
+            - columnheader "Telefone" [ref=e121]
+            - columnheader "Cidade" [ref=e122]
+            - columnheader "Ações" [ref=e123]
+        - rowgroup [ref=e124]:
+          - row "Test Shop Local - - (11) 98765-4321 - Editar Deletar" [ref=e125]:
+            - cell "Test Shop Local" [ref=e126]
+            - cell "-" [ref=e127]
+            - cell "-" [ref=e128]
+            - cell "(11) 98765-4321" [ref=e129]
+            - cell "-" [ref=e130]
+            - cell "Editar Deletar" [ref=e131]:
+              - button "Editar" [ref=e132] [cursor=pointer]
+              - button "Deletar" [ref=e133] [cursor=pointer]

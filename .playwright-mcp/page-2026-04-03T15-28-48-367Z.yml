@@ -1,0 +1,39 @@
+- generic [ref=e24]:
+  - navigation [ref=e25]:
+    - heading "📊 Mini ERP" [level=1] [ref=e26]
+    - list [ref=e27]:
+      - listitem [ref=e28]:
+        - button "🏠 Dashboard" [active] [ref=e29] [cursor=pointer]
+      - listitem [ref=e30]:
+        - button "👥 Clientes" [ref=e31] [cursor=pointer]
+      - listitem [ref=e32]:
+        - button "📦 Pedidos" [ref=e33] [cursor=pointer]
+      - listitem [ref=e34]:
+        - button "💰 Boletos" [ref=e35] [cursor=pointer]
+      - listitem [ref=e36]:
+        - generic [ref=e37]: 👤 testuser
+        - button "🚪 Sair" [ref=e38] [cursor=pointer]
+  - main [ref=e39]:
+    - generic [ref=e373]:
+      - heading "Dashboard Financeiro" [level=2] [ref=e375]
+      - generic [ref=e376]:
+        - generic [ref=e377]:
+          - heading "Total Recebido" [level=3] [ref=e378]
+          - generic [ref=e379]: R$ 0.00
+        - generic [ref=e380]:
+          - heading "Total a Receber" [level=3] [ref=e381]
+          - generic [ref=e382]: R$ 1500.00
+        - generic [ref=e383]:
+          - heading "Total Geral" [level=3] [ref=e384]
+          - generic [ref=e385]: R$ 1500.00
+        - generic [ref=e386]:
+          - heading "Total de Clientes" [level=3] [ref=e387]
+          - generic [ref=e388]: "1"
+        - generic [ref=e389]:
+          - heading "Total de Pedidos" [level=3] [ref=e390]
+          - generic [ref=e391]: "1"
+      - generic [ref=e392]:
+        - heading "Resumo Financeiro" [level=3] [ref=e393]
+        - paragraph [ref=e394]:
+          - strong [ref=e395]: "Taxa de Recebimento:"
+          - text: 0.0%

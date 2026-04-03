@@ -27,7 +27,7 @@ const createRes = () => {
 const produtoBase = {
   id: 1,
   pedido_id: 10,
-  codigo_fornecedor: 'COD-001',
+  cod_fornecedor: 'COD-001',
   cod_seq: 1,
   produto_receber: 'Produto X',
   embalagem: 'CX',
@@ -233,7 +233,7 @@ describe('produtoController', () => {
       await updateProduto(req, res);
 
       const callArgs = dbRun.mock.calls[0][1];
-      expect(callArgs[0]).toBe('COD-001'); // codigo_fornecedor mantido
+      expect(callArgs[0]).toBe('COD-001'); // cod_fornecedor mantido
       expect(callArgs[2]).toBe('Produto X'); // produto_receber mantido
     });
 
@@ -261,7 +261,7 @@ describe('produtoController', () => {
 
     it('usa valores enviados para todos os campos quando definidos', async () => {
       const payload = {
-        codigo_fornecedor: 'COD-999',
+        cod_fornecedor: 'COD-999',
         cod_seq: 99,
         produto_receber: 'Produto Z',
         embalagem: 'UN',
@@ -282,7 +282,7 @@ describe('produtoController', () => {
       await updateProduto(req, res);
 
       const callArgs = dbRun.mock.calls[0][1];
-      expect(callArgs[0]).toBe(payload.codigo_fornecedor);
+      expect(callArgs[0]).toBe(payload.cod_fornecedor);
       expect(callArgs[1]).toBe(payload.cod_seq);
       expect(callArgs[2]).toBe(payload.produto_receber);
       expect(callArgs[3]).toBe(payload.embalagem);
