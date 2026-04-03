@@ -10,49 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  frontend-tests:
-    name: Frontend Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm install
-
-      - name: Run frontend tests
-        working-directory: frontend
-        run: npm test
-
-  backend-tests:
-    name: Backend Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm install
-
-      - name: Run backend tests
-        working-directory: backend
-        run: npm test
-
   unit-coverage:
     name: Unit + Coverage >90%
     runs-on: ubuntu-latest
@@ -97,7 +54,7 @@ jobs:
     name: E2E Playwright
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    needs: [frontend-tests, backend-tests]
+    needs: [unit-coverage]
 
     steps:
       - name: Checkout repository
