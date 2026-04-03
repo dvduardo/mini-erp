@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Tests for Mini ERP",
   "scripts": {
-    "test": "playwright test",
+    "test": "playwright test --config tests/playwright.config.js",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug"
   },
