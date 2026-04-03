@@ -1,5 +1,10 @@
 import { vi, describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../context/AuthContext', () => ({
+  useAuth: vi.fn(() => ({ user: { username: 'testuser' }, logout: vi.fn() }))
+}));
+
 import Navbar from '../components/Navbar';
 
 describe('Navbar', () => {
@@ -67,5 +72,22 @@ describe('Navbar', () => {
   it('aplica active ao Boletos quando currentPage é "boletos"', () => {
     render(<Navbar currentPage="boletos" onNavigate={onNavigate} />);
     expect(screen.getByText(/Boletos/i)).toHaveClass('active');
+  });
+
+  it('chama logout e recarrega página ao clicar em Sair', async () => {
+    const mockLogout = vi.fn().mockResolvedValue(undefined);
+    const { useAuth } = await import('../context/AuthContext');
+    useAuth.mockReturnValue({ user: { username: 'testuser' }, logout: mockLogout });
+
+    const reloadMock = vi.fn();
+    Object.defineProperty(window, 'location', { value: { reload: reloadMock }, writable: true });
+
+    const { fireEvent: fe } = await import('@testing-library/react');
+    render(<Navbar currentPage="home" onNavigate={onNavigate} />);
+    fe.click(screen.getByText(/Sair/i));
+
+    await vi.waitFor(() => {
+      expect(mockLogout).toHaveBeenCalled();
+    });
   });
 });

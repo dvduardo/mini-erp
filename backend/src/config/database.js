@@ -43,12 +43,24 @@ if (databaseUrl) {
   db = sqliteDb;
 }
 
+// Função para converter placeholders de ? para $1, $2, etc (PostgreSQL)
+const convertPlaceholders = (sql) => {
+  if (!isPostgres) return sql;
+  
+  let paramIndex = 0;
+  return sql.replace(/\?/g, () => {
+    paramIndex++;
+    return `$${paramIndex}`;
+  });
+};
+
 // Função para executar queries com promessas
 export const dbRun = (sql, params = []) => {
   return new Promise((resolve, reject) => {
     if (isPostgres) {
       // PostgreSQL
-      db.query(sql, params)
+      const convertedSql = convertPlaceholders(sql);
+      db.query(convertedSql, params)
         .then(result => {
           resolve({
             id: result.rows[0]?.id,
@@ -70,7 +82,8 @@ export const dbGet = (sql, params = []) => {
   return new Promise((resolve, reject) => {
     if (isPostgres) {
       // PostgreSQL
-      db.query(sql, params)
+      const convertedSql = convertPlaceholders(sql);
+      db.query(convertedSql, params)
         .then(result => {
           resolve(result.rows[0] || null);
         })
@@ -89,7 +102,8 @@ export const dbAll = (sql, params = []) => {
   return new Promise((resolve, reject) => {
     if (isPostgres) {
       // PostgreSQL
-      db.query(sql, params)
+      const convertedSql = convertPlaceholders(sql);
+      db.query(convertedSql, params)
         .then(result => {
           resolve(result.rows);
         })

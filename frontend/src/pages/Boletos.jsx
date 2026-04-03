@@ -170,7 +170,7 @@ function Boletos() {
                   <td>{boleto.numero_boleto || '-'}</td>
                   <td>{boleto.numero_pedido}</td>
                   <td>{boleto.cliente_nome}</td>
-                  <td>R$ {boleto.valor.toFixed(2)}</td>
+                  <td>R$ {(Number(boleto.valor) || 0).toFixed(2)}</td>
                   <td>{new Date(boleto.data_vencimento).toLocaleDateString('pt-BR')}</td>
                   <td>{boleto.status_pagamento}</td>
                   <td>

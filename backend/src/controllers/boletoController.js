@@ -67,7 +67,7 @@ export const createBoleto = async (req, res) => {
     }
     
     const result = await dbRun(
-      'INSERT INTO boletos (pedido_id, numero_boleto, valor, data_vencimento) VALUES (?, ?, ?, ?)',
+      'INSERT INTO boletos (pedido_id, numero_boleto, valor, data_vencimento) VALUES (?, ?, ?, ?) RETURNING id',
       [pedido_id, numero_boleto, valor, data_vencimento]
     );
     

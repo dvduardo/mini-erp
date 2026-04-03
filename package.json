@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "description": "Tests for Mini ERP",
   "scripts": {
-    "build": "npm run build --prefix frontend",
+    "build": "cd frontend && NODE_ENV=development npm install && npx vite build && cd ..",
     "test": "playwright test --config tests/playwright.config.js",
     "test:ui": "playwright test --ui",
-    "test:debug": "playwright test --debug"
+    "test:debug": "playwright test --debug",
+    "postinstall": "npm install --prefix backend"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "express-http-proxy": "^2.1.2"
   }
 }

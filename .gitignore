@@ -32,3 +32,11 @@ npm-debug.log*
 
 backend/package-lock.json
 frontend/package-lock.json
+package-lock.json
+
+.playwright-mcp/
+*.png
+
+backend/coverage/
+frontend/coverage/
+

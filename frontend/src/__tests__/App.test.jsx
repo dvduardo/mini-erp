@@ -25,11 +25,35 @@ vi.mock('../components/Navbar', () => ({
     </nav>
   )
 }));
+vi.mock('../pages/Login', () => ({
+  default: () => <div data-testid="page-login">Login Page</div>
+}));
 vi.mock('../App.css', () => ({}));
+vi.mock('../context/AuthContext', () => ({
+  AuthProvider: ({ children }) => children,
+  useAuth: vi.fn(() => ({ isAuthenticated: true, loading: false }))
+}));
 
+import { useAuth } from '../context/AuthContext';
 import App from '../App';
 
 describe('App', () => {
+  beforeEach(() => {
+    useAuth.mockReturnValue({ isAuthenticated: true, loading: false });
+  });
+
+  it('exibe "Carregando..." enquanto loading é true', () => {
+    useAuth.mockReturnValue({ isAuthenticated: false, loading: true });
+    render(<App />);
+    expect(screen.getByText(/Carregando/i)).toBeInTheDocument();
+  });
+
+  it('exibe Login quando não autenticado', () => {
+    useAuth.mockReturnValue({ isAuthenticated: false, loading: false });
+    render(<App />);
+    expect(screen.queryByTestId('navbar')).not.toBeInTheDocument();
+  });
+
   it('renderiza a Navbar e a página Home por padrão', () => {
     render(<App />);
     expect(screen.getByTestId('navbar')).toBeInTheDocument();
