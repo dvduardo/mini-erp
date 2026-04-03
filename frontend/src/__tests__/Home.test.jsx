@@ -78,7 +78,7 @@ describe('Home (Dashboard)', () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Total de Boletos/i)).toBeInTheDocument();
+      expect(screen.getByText(/Total Geral/i)).toBeInTheDocument();
       expect(screen.getByText(/1500\.50/)).toBeInTheDocument();
     });
   });

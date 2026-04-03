@@ -1,19 +1,23 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-vi.mock('axios', () => {
-  const mockAxios = {
-    create: vi.fn().mockReturnValue({
-      get: vi.fn(),
-      post: vi.fn(),
-      put: vi.fn(),
-      delete: vi.fn()
-    })
+const mockInstance = vi.hoisted(() => {
+  const interceptors = { use: vi.fn() };
+  return {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    interceptors: { request: interceptors, response: interceptors }
   };
-  return { default: mockAxios };
 });
 
-import axios from 'axios';
+vi.mock('axios', () => ({
+  default: { create: vi.fn(() => mockInstance) }
+}));
+
+import '../services/api.js';
 import {
+  authAPI,
   clientesAPI,
   pedidosAPI,
   produtosAPI,
@@ -21,7 +25,7 @@ import {
   notasFiscaisAPI
 } from '../services/api.js';
 
-const mockApi = axios.create();
+const mockApi = mockInstance;
 
 describe('API Service', () => {
   beforeEach(() => {
@@ -187,6 +191,28 @@ describe('API Service', () => {
     it('delete chama DELETE /notas-fiscais/:id', async () => {
       await notasFiscaisAPI.delete(1);
       expect(mockApi.delete).toHaveBeenCalledWith('/notas-fiscais/1');
+    });
+  });
+
+  describe('authAPI', () => {
+    it('login chama POST /auth/login', async () => {
+      await authAPI.login('user', 'pass');
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/login', { username: 'user', password: 'pass' });
+    });
+
+    it('register chama POST /auth/register', async () => {
+      await authAPI.register('user', 'pass', 'a@b.com');
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/register', { username: 'user', password: 'pass', email: 'a@b.com' });
+    });
+
+    it('logout chama POST /auth/logout', async () => {
+      await authAPI.logout();
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/logout');
+    });
+
+    it('me chama GET /auth/me', async () => {
+      await authAPI.me();
+      expect(mockApi.get).toHaveBeenCalledWith('/auth/me');
     });
   });
 });

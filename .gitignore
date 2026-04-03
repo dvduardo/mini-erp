@@ -36,3 +36,7 @@ package-lock.json
 
 .playwright-mcp/
 *.png
+
+backend/coverage/
+frontend/coverage/
+
