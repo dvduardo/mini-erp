@@ -2,11 +2,13 @@ import 'dotenv/config';
 import app from './src/app.js';
 import { databaseReady } from './src/config/database.js';
 import { ensureUploadsDir, warnIfUsingLocalUploadsInProduction } from './src/config/storage.js';
+import { validateSecurityConfig } from './src/config/security.js';
 
 const PORT = process.env.PORT || 5001;
 const isProduction = process.env.NODE_ENV === 'production';
 const HOST = process.env.HOST || (isProduction ? '0.0.0.0' : '127.0.0.1');
 
+validateSecurityConfig();
 await databaseReady;
 ensureUploadsDir();
 warnIfUsingLocalUploadsInProduction();

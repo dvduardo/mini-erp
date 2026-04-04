@@ -303,7 +303,7 @@ describe('Boletos', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText('Erro ao salvar boleto.')).toBeInTheDocument();
+      expect(screen.getByText('Erro interno')).toBeInTheDocument();
     });
   });
 
@@ -318,7 +318,7 @@ describe('Boletos', () => {
     fireEvent.click(deletarBtns[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('Erro ao deletar boleto.')).toBeInTheDocument();
+      expect(screen.getByText('Você parece estar sem conexão para remover o boleto.')).toBeInTheDocument();
     });
   });
 

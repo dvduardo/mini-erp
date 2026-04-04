@@ -43,6 +43,7 @@ const createRes = () => {
 describe('authController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.APP_URL = 'http://localhost:5173';
   });
 
   // ── register ──────────────────────────────────────────────────────────────────
@@ -52,7 +53,7 @@ describe('authController', () => {
       const res = createRes();
       await register(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Username e password são obrigatórios' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Preencha usuário e senha para continuar.' });
     });
 
     it('retorna 400 se username já existe', async () => {
@@ -61,7 +62,7 @@ describe('authController', () => {
       const res = createRes();
       await register(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Username já existe' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Este nome de usuário já está em uso.' });
     });
 
     it('cria usuário e retorna token com 201', async () => {
@@ -78,7 +79,7 @@ describe('authController', () => {
       expect(generateToken).toHaveBeenCalledWith('test-uuid-1234');
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Usuário criado com sucesso',
+        message: 'Conta criada com sucesso.',
         token: 'mocked-token',
         user: { id: 'test-uuid-1234', username: 'newuser', email: 'a@b.com' }
       });
@@ -102,7 +103,7 @@ describe('authController', () => {
       const res = createRes();
       await register(req, res);
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao registrar usuário' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível criar sua conta agora. Tente novamente em instantes.' });
     });
   });
 
@@ -113,7 +114,7 @@ describe('authController', () => {
       const res = createRes();
       await login(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Username e password são obrigatórios' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Preencha usuário e senha para continuar.' });
     });
 
     it('retorna 401 se usuário não encontrado', async () => {
@@ -122,7 +123,7 @@ describe('authController', () => {
       const res = createRes();
       await login(req, res);
       expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Credenciais inválidas' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Usuário ou senha incorretos.' });
     });
 
     it('retorna 401 se senha inválida', async () => {
@@ -132,7 +133,7 @@ describe('authController', () => {
       const res = createRes();
       await login(req, res);
       expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Credenciais inválidas' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Usuário ou senha incorretos.' });
     });
 
     it('retorna token ao fazer login com sucesso', async () => {
@@ -145,7 +146,7 @@ describe('authController', () => {
 
       expect(generateToken).toHaveBeenCalledWith('user-id');
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Login bem-sucedido',
+        message: 'Login realizado com sucesso.',
         token: 'mocked-token',
         user: { id: 'user-id', username: 'user' }
       });
@@ -157,7 +158,7 @@ describe('authController', () => {
       const res = createRes();
       await login(req, res);
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao fazer login' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível fazer login agora. Tente novamente em instantes.' });
     });
   });
 
@@ -168,7 +169,7 @@ describe('authController', () => {
       const res = createRes();
       await logout(req, res);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Logout bem-sucedido. Remova o token no cliente.'
+        message: 'Sessão encerrada com sucesso.'
       });
     });
   });
@@ -181,20 +182,19 @@ describe('authController', () => {
       await forgotPassword(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Email é obrigatório' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Informe o e-mail cadastrado para continuar.' });
     });
 
     it('retorna sucesso genérico quando email não existe', async () => {
       dbGet.mockResolvedValue(null);
       const req = createReq({ email: 'naoexiste@teste.com' });
-      req.get = vi.fn(() => 'http://localhost:5173');
       const res = createRes();
 
       await forgotPassword(req, res);
 
       expect(sendPasswordResetEmail).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.'
+        message: 'Se encontrarmos esse e-mail, enviaremos um link para redefinir sua senha.'
       });
     });
 
@@ -202,7 +202,6 @@ describe('authController', () => {
       dbGet.mockResolvedValue({ id: 'user-id', username: 'user', email: 'user@test.com' });
       dbRun.mockResolvedValue({});
       const req = createReq({ email: 'user@test.com' });
-      req.get = vi.fn(() => 'http://localhost:5173');
       const res = createRes();
 
       await forgotPassword(req, res);
@@ -216,20 +215,32 @@ describe('authController', () => {
         resetUrl: expect.stringContaining('http://localhost:5173?resetToken=')
       });
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.'
+        message: 'Se encontrarmos esse e-mail, enviaremos um link para redefinir sua senha.'
       });
+    });
+
+    it('retorna 500 quando APP_URL não está configurada', async () => {
+      delete process.env.APP_URL;
+      dbGet.mockResolvedValue({ id: 'user-id', username: 'user', email: 'user@test.com' });
+      const req = createReq({ email: 'user@test.com' });
+      const res = createRes();
+
+      await forgotPassword(req, res);
+
+      expect(sendPasswordResetEmail).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível enviar o link de redefinição agora. Tente novamente em instantes.' });
     });
 
     it('retorna 500 em erro interno', async () => {
       dbGet.mockRejectedValue(new Error('DB error'));
       const req = createReq({ email: 'user@test.com' });
-      req.get = vi.fn(() => 'http://localhost:5173');
       const res = createRes();
 
       await forgotPassword(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao solicitar redefinição de senha' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível enviar o link de redefinição agora. Tente novamente em instantes.' });
     });
   });
 
@@ -241,7 +252,7 @@ describe('authController', () => {
       await resetPassword(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Token e nova senha são obrigatórios' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Informe o token e a nova senha para continuar.' });
     });
 
     it('retorna 400 para token inválido', async () => {
@@ -252,7 +263,7 @@ describe('authController', () => {
       await resetPassword(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Token de redefinição inválido ou expirado' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Esse link de redefinição é inválido ou já expirou.' });
     });
 
     it('atualiza senha e limpa token quando válido', async () => {
@@ -269,7 +280,7 @@ describe('authController', () => {
         'UPDATE users SET password_hash = ?, reset_password_token = NULL, reset_password_expires_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         ['hashed-new-pass', 'user-id']
       );
-      expect(res.json).toHaveBeenCalledWith({ message: 'Senha redefinida com sucesso' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Senha atualizada com sucesso.' });
     });
 
     it('retorna 500 em erro interno', async () => {
@@ -280,7 +291,7 @@ describe('authController', () => {
       await resetPassword(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao redefinir senha' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível redefinir sua senha agora. Tente novamente em instantes.' });
     });
   });
 
@@ -303,7 +314,7 @@ describe('authController', () => {
       const res = createRes();
       await me(req, res);
       expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Usuário não encontrado' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não encontramos esse usuário.' });
     });
 
     it('retorna 500 em caso de erro no banco', async () => {
@@ -312,7 +323,7 @@ describe('authController', () => {
       const res = createRes();
       await me(req, res);
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao buscar usuário' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível carregar os dados da sua conta agora.' });
     });
   });
 });

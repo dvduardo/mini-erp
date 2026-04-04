@@ -25,9 +25,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const shouldSkipAuthRedirect = error.config?.skipAuthRedirect === true;
+
+    if (error.response?.status === 401 && !shouldSkipAuthRedirect) {
       localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
     }
     return Promise.reject(error);
   }
@@ -35,10 +37,10 @@ api.interceptors.response.use(
 
 // Autenticação
 export const authAPI = {
-  login: (username, password) => api.post('/auth/login', { username, password }),
-  register: (username, password, email) => api.post('/auth/register', { username, password, email }),
-  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
-  resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
+  login: (username, password) => api.post('/auth/login', { username, password }, { skipAuthRedirect: true }),
+  register: (username, password, email) => api.post('/auth/register', { username, password, email }, { skipAuthRedirect: true }),
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }, { skipAuthRedirect: true }),
+  resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }, { skipAuthRedirect: true }),
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me')
 };

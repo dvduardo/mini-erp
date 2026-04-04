@@ -85,7 +85,7 @@ describe('notaFiscalController', () => {
       await getNotasFiscais(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível carregar as notas fiscais agora.' });
     });
   });
 
@@ -143,7 +143,7 @@ describe('notaFiscalController', () => {
       expect(dbRun).toHaveBeenCalledOnce();
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Nota fiscal enviada com sucesso',
+        message: 'Nota fiscal enviada com sucesso.',
         nota: notaBase
       });
     });
@@ -201,7 +201,7 @@ describe('notaFiscalController', () => {
       await uploadNotaFiscal(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Campo pedido_id é obrigatório' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Selecione o pedido para anexar a nota fiscal.' });
     });
 
     it('retorna 404 quando pedido não existe', async () => {
@@ -239,7 +239,7 @@ describe('notaFiscalController', () => {
 
       expect(fs.unlinkSync).toHaveBeenCalledOnce();
       expect(dbRun).toHaveBeenCalledWith('DELETE FROM notas_fiscais WHERE id = ?', ['1']);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Nota fiscal deletada com sucesso' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Nota fiscal removida com sucesso.' });
     });
 
     it('deleta nota fiscal sem apagar arquivo quando não existe no disco', async () => {

@@ -556,7 +556,7 @@ describe('Pedidos', () => {
 
     fireEvent.click(screen.getByText(/Anexar Nota Fiscal/i));
 
-    expect(window.alert).toHaveBeenCalledWith('Selecione um arquivo PDF');
+    expect(screen.getByText('Selecione um arquivo em PDF para enviar.')).toBeInTheDocument();
   });
 
   it('deleta nota fiscal quando existe', async () => {
@@ -603,7 +603,7 @@ describe('Pedidos', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText('Erro ao salvar pedido.')).toBeInTheDocument();
+      expect(screen.getByText('Erro ao salvar')).toBeInTheDocument();
     });
   });
 
@@ -618,7 +618,7 @@ describe('Pedidos', () => {
     fireEvent.click(deletarBtns[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('Erro ao deletar pedido.')).toBeInTheDocument();
+      expect(screen.getByText('Você parece estar sem conexão para remover o pedido.')).toBeInTheDocument();
     });
   });
 
@@ -824,7 +824,7 @@ describe('Pedidos', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText('Erro ao adicionar produto.')).toBeInTheDocument();
+      expect(screen.getByText('Erro')).toBeInTheDocument();
     });
   });
 
@@ -843,7 +843,7 @@ describe('Pedidos', () => {
     fireEvent.click(deletarBtns[deletarBtns.length - 1]);
 
     await waitFor(() => {
-      expect(screen.getByText('Erro ao deletar produto.')).toBeInTheDocument();
+      expect(screen.getByText('Você parece estar sem conexão para remover o produto.')).toBeInTheDocument();
     });
   });
 
@@ -866,7 +866,7 @@ describe('Pedidos', () => {
     fireEvent.click(removerBtn);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('Erro ao deletar nota fiscal');
+      expect(screen.getByText('Você parece estar sem conexão para remover a nota fiscal.')).toBeInTheDocument();
     });
   });
 
@@ -926,7 +926,7 @@ describe('Pedidos', () => {
     fireEvent.click(screen.getByText(/Anexar Nota Fiscal/i));
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalled();
+      expect(screen.getByText('Erro')).toBeInTheDocument();
     });
   });
 

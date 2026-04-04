@@ -1,4 +1,5 @@
 import { dbRun, dbGet, dbAll } from '../config/database.js';
+import { sendInternalError } from '../utils/httpErrors.js';
 
 function normalizeRequired(value) {
   return typeof value === 'string' ? value.trim() : value;
@@ -23,7 +24,7 @@ export const getClientes = async (req, res) => {
     const clientes = await dbAll('SELECT * FROM clientes WHERE ativo = true ORDER BY nome');
     res.json(clientes);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar a lista de clientes agora.', err, 'Erro ao listar clientes:');
   }
 };
 
@@ -39,7 +40,7 @@ export const getClienteById = async (req, res) => {
     
     res.json(cliente);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar os dados do cliente agora.', err, 'Erro ao buscar cliente por ID:');
   }
 };
 
@@ -55,11 +56,11 @@ export const createCliente = async (req, res) => {
     const normalizedCpfCnpj = normalizeRequired(cpf_cnpj);
     
     if (!normalizedNome) {
-      return res.status(400).json({ error: 'Campo "nome" é obrigatório' });
+      return res.status(400).json({ error: 'Informe o nome do cliente.' });
     }
 
     if (!normalizedCpfCnpj) {
-      return res.status(400).json({ error: 'Campo "CPF/CNPJ" é obrigatório' });
+      return res.status(400).json({ error: 'Informe o CPF ou CNPJ do cliente.' });
     }
     
     const result = await dbRun(
@@ -86,9 +87,9 @@ export const createCliente = async (req, res) => {
     res.status(201).json(cliente);
   } catch (err) {
     if (isUniqueConstraintError(err)) {
-      return res.status(400).json({ error: 'CPF/CNPJ já cadastrado' });
+      return res.status(400).json({ error: 'Já existe um cliente cadastrado com este CPF ou CNPJ.' });
     }
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível salvar o cliente agora.', err, 'Erro ao criar cliente:');
   }
 };
 
@@ -110,11 +111,11 @@ export const updateCliente = async (req, res) => {
     const nextCpfCnpj = cpf_cnpj !== undefined ? normalizeRequired(cpf_cnpj) : cliente.cpf_cnpj;
 
     if (!nextNome) {
-      return res.status(400).json({ error: 'Campo "nome" é obrigatório' });
+      return res.status(400).json({ error: 'Informe o nome do cliente.' });
     }
 
     if (!nextCpfCnpj) {
-      return res.status(400).json({ error: 'Campo "CPF/CNPJ" é obrigatório' });
+      return res.status(400).json({ error: 'Informe o CPF ou CNPJ do cliente.' });
     }
     
     await dbRun(
@@ -143,9 +144,9 @@ export const updateCliente = async (req, res) => {
     res.json(clienteAtualizado);
   } catch (err) {
     if (isUniqueConstraintError(err)) {
-      return res.status(400).json({ error: 'CPF/CNPJ já cadastrado' });
+      return res.status(400).json({ error: 'Já existe um cliente cadastrado com este CPF ou CNPJ.' });
     }
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível atualizar o cliente agora.', err, 'Erro ao atualizar cliente:');
   }
 };
 
@@ -160,8 +161,8 @@ export const deleteCliente = async (req, res) => {
     }
     
     await dbRun('UPDATE clientes SET ativo = false WHERE id = ?', [id]);
-    res.json({ message: 'Cliente deletado com sucesso' });
+    res.json({ message: 'Cliente removido com sucesso.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível remover o cliente agora.', err, 'Erro ao deletar cliente:');
   }
 };

@@ -74,13 +74,10 @@ describe('Navbar', () => {
     expect(screen.getByText(/Boletos/i)).toHaveClass('active');
   });
 
-  it('chama logout e recarrega página ao clicar em Sair', async () => {
+  it('chama logout ao clicar em Sair', async () => {
     const mockLogout = vi.fn().mockResolvedValue(undefined);
     const { useAuth } = await import('../context/AuthContext');
     useAuth.mockReturnValue({ user: { username: 'testuser' }, logout: mockLogout });
-
-    const reloadMock = vi.fn();
-    Object.defineProperty(window, 'location', { value: { reload: reloadMock }, writable: true });
 
     const { fireEvent: fe } = await import('@testing-library/react');
     render(<Navbar currentPage="home" onNavigate={onNavigate} />);

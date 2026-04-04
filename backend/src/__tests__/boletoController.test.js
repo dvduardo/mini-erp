@@ -75,7 +75,7 @@ describe('boletoController', () => {
       await getBoletos(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível carregar os boletos agora.' });
     });
   });
 
@@ -142,7 +142,7 @@ describe('boletoController', () => {
       expect(dbRun).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'Campos pedido_id, valor e data_vencimento são obrigatórios'
+        error: 'Selecione o pedido e preencha valor e vencimento.'
       });
     });
 
@@ -272,7 +272,7 @@ describe('boletoController', () => {
       await deleteBoleto(req, res);
 
       expect(dbRun).toHaveBeenCalledWith('DELETE FROM boletos WHERE id = ?', ['1']);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Boleto deletado com sucesso' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Boleto removido com sucesso.' });
     });
 
     it('retorna 404 quando boleto não existe', async () => {
@@ -342,7 +342,7 @@ describe('boletoController', () => {
       await getResumo(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível carregar o resumo financeiro agora.' });
     });
   });
 });

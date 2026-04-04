@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { boletosAPI, clientesAPI, pedidosAPI } from '../services/api';
 import { formatBRL } from '../utils/format';
+import Toast from '../components/Toast';
+import { getApiErrorMessage } from '../utils/apiError';
 
 function Home() {
   const [resumo, setResumo] = useState({
@@ -15,6 +17,7 @@ function Home() {
   });
   
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -45,6 +48,10 @@ function Home() {
       });
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível carregar o dashboard agora.', 'Você parece estar sem conexão para carregar o dashboard.'),
+        type: 'error'
+      });
       // Setar valores padrão em caso de erro
       setResumo({
         totalAReceber: 0,
@@ -71,6 +78,7 @@ function Home() {
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="page-header">
         <h2>Dashboard Financeiro</h2>
       </div>

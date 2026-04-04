@@ -27,10 +27,6 @@ vi.mock('axios', () => ({
   }
 }));
 
-// Mock window.location.href before importing api
-delete window.location;
-window.location = { href: '' };
-
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
@@ -67,6 +63,7 @@ const responseErrorHandler = responseUseCalls[0] ? responseUseCalls[0][1] : null
 describe('API Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(window, 'dispatchEvent');
     mockApi.get.mockResolvedValue({ data: [] });
     mockApi.post.mockResolvedValue({ data: {} });
     mockApi.put.mockResolvedValue({ data: {} });
@@ -234,22 +231,22 @@ describe('API Service', () => {
   describe('authAPI', () => {
     it('login chama POST /auth/login', async () => {
       await authAPI.login('user', 'pass');
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/login', { username: 'user', password: 'pass' });
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/login', { username: 'user', password: 'pass' }, { skipAuthRedirect: true });
     });
 
     it('register chama POST /auth/register', async () => {
       await authAPI.register('user', 'pass', 'a@b.com');
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/register', { username: 'user', password: 'pass', email: 'a@b.com' });
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/register', { username: 'user', password: 'pass', email: 'a@b.com' }, { skipAuthRedirect: true });
     });
 
     it('forgotPassword chama POST /auth/forgot-password', async () => {
       await authAPI.forgotPassword('a@b.com');
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/forgot-password', { email: 'a@b.com' });
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/forgot-password', { email: 'a@b.com' }, { skipAuthRedirect: true });
     });
 
     it('resetPassword chama POST /auth/reset-password', async () => {
       await authAPI.resetPassword('token-123', 'nova123');
-      expect(mockApi.post).toHaveBeenCalledWith('/auth/reset-password', { token: 'token-123', password: 'nova123' });
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/reset-password', { token: 'token-123', password: 'nova123' }, { skipAuthRedirect: true });
     });
 
     it('logout chama POST /auth/logout', async () => {
@@ -267,7 +264,7 @@ describe('API Service', () => {
     beforeEach(() => {
       localStorageMock.getItem.mockClear();
       localStorageMock.removeItem.mockClear();
-      window.location.href = '';
+      window.dispatchEvent.mockClear();
     });
 
     afterEach(() => {
@@ -322,9 +319,11 @@ describe('API Service', () => {
         expect(result).toEqual(response);
       });
 
-      it('remove token e redireciona para /login em erro 401', async () => {
+      it('remove token e emite evento de sessão expirada em erro 401', async () => {
+        const dispatchEventSpy = vi.spyOn(window, 'dispatchEvent');
         const error = {
-          response: { status: 401 }
+          response: { status: 401 },
+          config: {}
         };
 
         try {
@@ -334,7 +333,23 @@ describe('API Service', () => {
         }
 
         expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
-        expect(window.location.href).toBe('/login');
+        expect(dispatchEventSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'auth:unauthorized' }));
+      });
+
+      it('não redireciona em erro 401 quando a requisição desabilita o auth redirect', async () => {
+        const error = {
+          response: { status: 401 },
+          config: { skipAuthRedirect: true }
+        };
+
+        try {
+          await responseErrorHandler(error);
+        } catch (e) {
+          expect(e).toEqual(error);
+        }
+
+        expect(localStorageMock.removeItem).not.toHaveBeenCalled();
+        expect(window.dispatchEvent).not.toHaveBeenCalled();
       });
 
       it('rejeita erro quando status não é 401', async () => {
@@ -371,7 +386,7 @@ describe('API Service', () => {
         }
 
         expect(localStorageMock.removeItem).not.toHaveBeenCalled();
-        expect(window.location.href).toBe('');
+        expect(window.dispatchEvent).not.toHaveBeenCalled();
       });
     });
   });

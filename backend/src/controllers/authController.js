@@ -4,15 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { dbRun, dbGet } from '../config/database.js';
 import { generateToken } from '../middleware/auth.js';
 import { sendPasswordResetEmail } from '../config/mail.js';
+import { getAppUrl } from '../config/security.js';
 
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
 
 function hashResetToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
-}
-
-function getAppUrl(req) {
-  return process.env.APP_URL || req.get('origin') || 'http://localhost:5173';
 }
 
 export async function register(req, res) {
@@ -21,13 +18,13 @@ export async function register(req, res) {
 
     // Validação
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username e password são obrigatórios' });
+      return res.status(400).json({ error: 'Preencha usuário e senha para continuar.' });
     }
 
     // Verificar se usuário já existe
     const existingUser = await dbGet('SELECT id FROM users WHERE username = ?', [username]);
     if (existingUser) {
-      return res.status(400).json({ error: 'Username já existe' });
+      return res.status(400).json({ error: 'Este nome de usuário já está em uso.' });
     }
 
     // Hash da senha
@@ -43,13 +40,13 @@ export async function register(req, res) {
 
     const token = generateToken(userId);
     res.status(201).json({
-      message: 'Usuário criado com sucesso',
+      message: 'Conta criada com sucesso.',
       token,
       user: { id: userId, username, email }
     });
   } catch (error) {
     console.error('Erro ao registrar usuário:', error);
-    res.status(500).json({ error: 'Erro ao registrar usuário' });
+    res.status(500).json({ error: 'Não foi possível criar sua conta agora. Tente novamente em instantes.' });
   }
 }
 
@@ -59,37 +56,37 @@ export async function login(req, res) {
 
     // Validação
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username e password são obrigatórios' });
+      return res.status(400).json({ error: 'Preencha usuário e senha para continuar.' });
     }
 
     // Buscar usuário
     const user = await dbGet('SELECT id, password_hash FROM users WHERE username = ?', [username]);
     if (!user) {
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+      return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
     }
 
     // Verificar senha
     const isPasswordValid = await bcryptjs.compare(password, user.password_hash);
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+      return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
     }
 
     // Gerar token
     const token = generateToken(user.id);
     res.json({
-      message: 'Login bem-sucedido',
+      message: 'Login realizado com sucesso.',
       token,
       user: { id: user.id, username }
     });
   } catch (error) {
     console.error('Erro ao fazer login:', error);
-    res.status(500).json({ error: 'Erro ao fazer login' });
+    res.status(500).json({ error: 'Não foi possível fazer login agora. Tente novamente em instantes.' });
   }
 }
 
 export async function logout(req, res) {
   // JWT é stateless, então logout é apenas um feedback ao cliente
-  res.json({ message: 'Logout bem-sucedido. Remova o token no cliente.' });
+  res.json({ message: 'Sessão encerrada com sucesso.' });
 }
 
 export async function forgotPassword(req, res) {
@@ -97,11 +94,11 @@ export async function forgotPassword(req, res) {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ error: 'Email é obrigatório' });
+      return res.status(400).json({ error: 'Informe o e-mail cadastrado para continuar.' });
     }
 
     const user = await dbGet('SELECT id, username, email FROM users WHERE email = ?', [email]);
-    const successMessage = 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.';
+    const successMessage = 'Se encontrarmos esse e-mail, enviaremos um link para redefinir sua senha.';
 
     if (!user) {
       return res.json({ message: successMessage });
@@ -110,7 +107,7 @@ export async function forgotPassword(req, res) {
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = hashResetToken(resetToken);
     const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS).toISOString();
-    const resetUrl = `${getAppUrl(req)}?resetToken=${resetToken}`;
+    const resetUrl = `${getAppUrl()}?resetToken=${resetToken}`;
 
     await dbRun(
       'UPDATE users SET reset_password_token = ?, reset_password_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
@@ -126,7 +123,7 @@ export async function forgotPassword(req, res) {
     res.json({ message: successMessage });
   } catch (error) {
     console.error('Erro ao solicitar redefinição de senha:', error);
-    res.status(500).json({ error: 'Erro ao solicitar redefinição de senha' });
+    res.status(500).json({ error: 'Não foi possível enviar o link de redefinição agora. Tente novamente em instantes.' });
   }
 }
 
@@ -135,7 +132,7 @@ export async function resetPassword(req, res) {
     const { token, password } = req.body;
 
     if (!token || !password) {
-      return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+      return res.status(400).json({ error: 'Informe o token e a nova senha para continuar.' });
     }
 
     const hashedToken = hashResetToken(token);
@@ -146,7 +143,7 @@ export async function resetPassword(req, res) {
     );
 
     if (!user) {
-      return res.status(400).json({ error: 'Token de redefinição inválido ou expirado' });
+      return res.status(400).json({ error: 'Esse link de redefinição é inválido ou já expirou.' });
     }
 
     const passwordHash = await bcryptjs.hash(password, 10);
@@ -156,10 +153,10 @@ export async function resetPassword(req, res) {
       [passwordHash, user.id]
     );
 
-    res.json({ message: 'Senha redefinida com sucesso' });
+    res.json({ message: 'Senha atualizada com sucesso.' });
   } catch (error) {
     console.error('Erro ao redefinir senha:', error);
-    res.status(500).json({ error: 'Erro ao redefinir senha' });
+    res.status(500).json({ error: 'Não foi possível redefinir sua senha agora. Tente novamente em instantes.' });
   }
 }
 
@@ -167,11 +164,11 @@ export async function me(req, res) {
   try {
     const user = await dbGet('SELECT id, username, email FROM users WHERE id = ?', [req.userId]);
     if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' });
+      return res.status(404).json({ error: 'Não encontramos esse usuário.' });
     }
     res.json(user);
   } catch (error) {
     console.error('Erro ao buscar usuário:', error);
-    res.status(500).json({ error: 'Erro ao buscar usuário' });
+    res.status(500).json({ error: 'Não foi possível carregar os dados da sua conta agora.' });
   }
 }

@@ -1,4 +1,5 @@
 import { dbRun, dbGet, dbAll } from '../config/database.js';
+import { sendInternalError } from '../utils/httpErrors.js';
 
 // Listar todos os boletos
 export const getBoletos = async (req, res) => {
@@ -24,7 +25,7 @@ export const getBoletos = async (req, res) => {
     const boletos = await dbAll(query, params);
     res.json(boletos);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar os boletos agora.', err, 'Erro ao listar boletos:');
   }
 };
 
@@ -47,7 +48,7 @@ export const getBoletoById = async (req, res) => {
     
     res.json(boleto);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar os dados do boleto agora.', err, 'Erro ao buscar boleto por ID:');
   }
 };
 
@@ -57,7 +58,7 @@ export const createBoleto = async (req, res) => {
     const { pedido_id, numero_boleto, valor, data_vencimento } = req.body;
     
     if (!pedido_id || !valor || !data_vencimento) {
-      return res.status(400).json({ error: 'Campos pedido_id, valor e data_vencimento são obrigatórios' });
+      return res.status(400).json({ error: 'Selecione o pedido e preencha valor e vencimento.' });
     }
     
     // Verificar se pedido existe
@@ -81,7 +82,7 @@ export const createBoleto = async (req, res) => {
     
     res.status(201).json(boleto);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível salvar o boleto agora.', err, 'Erro ao criar boleto:');
   }
 };
 
@@ -118,7 +119,7 @@ export const updateBoleto = async (req, res) => {
     
     res.json(boletoAtualizado);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível atualizar o boleto agora.', err, 'Erro ao atualizar boleto:');
   }
 };
 
@@ -133,9 +134,9 @@ export const deleteBoleto = async (req, res) => {
     }
     
     await dbRun('DELETE FROM boletos WHERE id = ?', [id]);
-    res.json({ message: 'Boleto deletado com sucesso' });
+    res.json({ message: 'Boleto removido com sucesso.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível remover o boleto agora.', err, 'Erro ao deletar boleto:');
   }
 };
 
@@ -162,6 +163,6 @@ export const getResumo = async (req, res) => {
       totalGeral: totalBoletos.total
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar o resumo financeiro agora.', err, 'Erro ao carregar resumo de boletos:');
   }
 };

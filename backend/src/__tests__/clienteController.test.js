@@ -52,7 +52,7 @@ describe('clienteController', () => {
       await getClientes(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível carregar a lista de clientes agora.' });
     });
   });
 
@@ -89,7 +89,7 @@ describe('clienteController', () => {
       await getClienteById(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível carregar os dados do cliente agora.' });
     });
   });
 
@@ -128,7 +128,7 @@ describe('clienteController', () => {
 
       expect(dbRun).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Campo "nome" é obrigatório' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Informe o nome do cliente.' });
     });
 
     it('retorna 400 quando CPF/CNPJ está ausente', async () => {
@@ -138,7 +138,7 @@ describe('clienteController', () => {
 
       expect(dbRun).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Campo "CPF/CNPJ" é obrigatório' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Informe o CPF ou CNPJ do cliente.' });
     });
 
     it('retorna 400 quando CPF/CNPJ já existe (UNIQUE constraint)', async () => {
@@ -149,7 +149,7 @@ describe('clienteController', () => {
       await createCliente(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'CPF/CNPJ já cadastrado' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Já existe um cliente cadastrado com este CPF ou CNPJ.' });
     });
 
     it('retorna 400 quando CPF/CNPJ já existe no PostgreSQL', async () => {
@@ -160,7 +160,7 @@ describe('clienteController', () => {
       await createCliente(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'CPF/CNPJ já cadastrado' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Já existe um cliente cadastrado com este CPF ou CNPJ.' });
     });
 
     it('retorna 500 em caso de erro genérico no banco', async () => {
@@ -171,7 +171,7 @@ describe('clienteController', () => {
       await createCliente(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Unexpected DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível salvar o cliente agora.' });
     });
   });
 
@@ -304,7 +304,7 @@ describe('clienteController', () => {
 
       // Accept both SQLite (0) and PostgreSQL (false) boolean styles
       expect(dbRun).toHaveBeenCalledWith(expect.stringMatching(/UPDATE clientes SET ativo = (0|false) WHERE id = \?/), ['1']);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Cliente deletado com sucesso' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Cliente removido com sucesso.' });
     });
 
     it('retorna 404 quando cliente não existe', async () => {
@@ -327,7 +327,7 @@ describe('clienteController', () => {
       await deleteCliente(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível remover o cliente agora.' });
     });
   });
 });

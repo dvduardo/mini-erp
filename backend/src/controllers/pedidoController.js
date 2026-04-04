@@ -1,4 +1,5 @@
 import { dbRun, dbGet, dbAll } from '../config/database.js';
+import { sendInternalError } from '../utils/httpErrors.js';
 
 const getEnderecoEntrega = (pedidoValue, clienteValue) => {
   if (pedidoValue !== undefined && pedidoValue !== null && pedidoValue !== '') {
@@ -19,7 +20,7 @@ export const getPedidos = async (req, res) => {
     `);
     res.json(pedidos);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar a lista de pedidos agora.', err, 'Erro ao listar pedidos:');
   }
 };
 
@@ -50,7 +51,7 @@ export const getPedidoById = async (req, res) => {
 
     res.json({ ...pedido, produtos, boletos, notaFiscal: notaFiscal || null });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar os detalhes do pedido agora.', err, 'Erro ao buscar pedido por ID:');
   }
 };
 
@@ -60,7 +61,7 @@ export const createPedido = async (req, res) => {
     const { cliente_id, numero_pedido, data_emissao, data_entrega, observacoes, endereco_entrega, bairro_entrega, cidade_entrega, cep_entrega, total_pedido } = req.body;
 
     if (!cliente_id || !numero_pedido) {
-      return res.status(400).json({ error: 'Campos cliente_id e numero_pedido são obrigatórios' });
+      return res.status(400).json({ error: 'Selecione o cliente e informe o número do pedido.' });
     }
 
     // Verificar se cliente existe
@@ -90,9 +91,9 @@ export const createPedido = async (req, res) => {
     res.status(201).json(pedido);
   } catch (err) {
     if (err.message.includes('UNIQUE constraint failed')) {
-      return res.status(400).json({ error: 'Número de pedido já existe' });
+      return res.status(400).json({ error: 'Já existe um pedido com esse número.' });
     }
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível salvar o pedido agora.', err, 'Erro ao criar pedido:');
   }
 };
 
@@ -135,7 +136,7 @@ export const updatePedido = async (req, res) => {
 
     res.json(pedidoAtualizado);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível atualizar o pedido agora.', err, 'Erro ao atualizar pedido:');
   }
 };
 
@@ -154,8 +155,8 @@ export const deletePedido = async (req, res) => {
     await dbRun('DELETE FROM notas_fiscais WHERE pedido_id = ?', [id]);
     await dbRun('DELETE FROM pedidos WHERE id = ?', [id]);
     
-    res.json({ message: 'Pedido deletado com sucesso' });
+    res.json({ message: 'Pedido removido com sucesso.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível remover o pedido agora.', err, 'Erro ao deletar pedido:');
   }
 };

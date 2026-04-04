@@ -112,10 +112,10 @@ describe('Login', () => {
       forgotPassword: mockForgotPassword,
       resetPassword: mockResetPassword,
       clearError: mockClearError,
-      error: 'Credenciais inválidas'
+      error: 'Usuário ou senha incorretos.'
     });
     render(<Login onLoginSuccess={onLoginSuccess} />);
-    expect(screen.getByText('Credenciais inválidas')).toBeInTheDocument();
+    expect(screen.getByText('Usuário ou senha incorretos.')).toBeInTheDocument();
   });
 
   it('abre fluxo de recuperação e envia email informado', async () => {

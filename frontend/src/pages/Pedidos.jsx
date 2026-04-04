@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { pedidosAPI, clientesAPI, notasFiscaisAPI, produtosAPI } from '../services/api';
 import Toast from '../components/Toast';
 import { formatBRL } from '../utils/format';
+import { getApiErrorMessage } from '../utils/apiError';
 
 function Pedidos() {
   const createEmptyFormData = () => ({
@@ -69,6 +70,10 @@ function Pedidos() {
       setClientes(clientesRes.data);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível carregar pedidos e clientes agora.', 'Você parece estar sem conexão para carregar pedidos e clientes.'),
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -154,7 +159,10 @@ function Pedidos() {
       } catch (error) {
         console.error('Erro ao carregar produtos do pedido:', error);
         setProdutosForm([emptyProduto()]);
-        setToast({ message: 'Não foi possível carregar os produtos do pedido.', type: 'error' });
+        setToast({
+          message: getApiErrorMessage(error, 'Não foi possível carregar os produtos deste pedido agora.', 'Você parece estar sem conexão para carregar os produtos deste pedido.'),
+          type: 'error'
+        });
       }
     } else {
       setEditingId(null);
@@ -234,10 +242,13 @@ function Pedidos() {
 
       loadData();
       handleCloseModal();
-      setToast({ message: editingId ? 'Pedido atualizado com sucesso!' : 'Pedido criado com sucesso!', type: 'success' });
+      setToast({ message: editingId ? 'Pedido atualizado com sucesso.' : 'Pedido cadastrado com sucesso.', type: 'success' });
     } catch (error) {
       console.error('Erro ao salvar pedido:', error);
-      setToast({ message: 'Erro ao salvar pedido.', type: 'error' });
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível salvar o pedido agora.', 'Você parece estar sem conexão para salvar o pedido.'),
+        type: 'error'
+      });
     }
   };
 
@@ -246,10 +257,13 @@ function Pedidos() {
       try {
         await pedidosAPI.delete(id);
         loadData();
-        setToast({ message: 'Pedido removido.', type: 'info' });
+        setToast({ message: 'Pedido removido com sucesso.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar pedido:', error);
-        setToast({ message: 'Erro ao deletar pedido.', type: 'error' });
+        setToast({
+          message: getApiErrorMessage(error, 'Não foi possível remover o pedido agora.', 'Você parece estar sem conexão para remover o pedido.'),
+          type: 'error'
+        });
       }
     }
   };
@@ -261,6 +275,10 @@ function Pedidos() {
       setShowDetailsModal(true);
     } catch (error) {
       console.error('Erro ao carregar detalhes:', error);
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível carregar os detalhes do pedido agora.', 'Você parece estar sem conexão para carregar os detalhes do pedido.'),
+        type: 'error'
+      });
     }
   };
 
@@ -299,10 +317,13 @@ function Pedidos() {
       const res = await pedidosAPI.getById(selectedPedido.id);
       setSelectedPedido(res.data);
       handleCloseProdutoModal();
-      setToast({ message: 'Produto adicionado com sucesso!', type: 'success' });
+      setToast({ message: 'Produto adicionado com sucesso.', type: 'success' });
     } catch (error) {
       console.error('Erro ao adicionar produto:', error);
-      setToast({ message: 'Erro ao adicionar produto.', type: 'error' });
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível adicionar o produto agora.', 'Você parece estar sem conexão para adicionar o produto.'),
+        type: 'error'
+      });
     }
   };
 
@@ -312,17 +333,20 @@ function Pedidos() {
         await produtosAPI.delete(produtoId);
         const res = await pedidosAPI.getById(selectedPedido.id);
         setSelectedPedido(res.data);
-        setToast({ message: 'Produto removido.', type: 'info' });
+        setToast({ message: 'Produto removido com sucesso.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar produto:', error);
-        setToast({ message: 'Erro ao deletar produto.', type: 'error' });
+        setToast({
+          message: getApiErrorMessage(error, 'Não foi possível remover o produto agora.', 'Você parece estar sem conexão para remover o produto.'),
+          type: 'error'
+        });
       }
     }
   };
 
   const handleUploadNotaFiscal = async () => {
     if (!notaFiscalFile) {
-      alert('Selecione um arquivo PDF');
+      setToast({ message: 'Selecione um arquivo em PDF para enviar.', type: 'error' });
       return;
     }
     try {
@@ -336,9 +360,13 @@ function Pedidos() {
       setSelectedPedido(res.data);
       setNotaFiscalFile(null);
       setNotaFiscalNumero('');
+      setToast({ message: 'Nota fiscal enviada com sucesso.', type: 'success' });
     } catch (error) {
       console.error('Erro ao enviar nota fiscal:', error);
-      alert('Erro ao enviar nota fiscal: ' + (error.response?.data?.error || error.message));
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível enviar a nota fiscal agora.', 'Você parece estar sem conexão para enviar a nota fiscal.'),
+        type: 'error'
+      });
     } finally {
       setUploadingNota(false);
     }
@@ -350,9 +378,13 @@ function Pedidos() {
         await notasFiscaisAPI.delete(selectedPedido.notaFiscal.id);
         const res = await pedidosAPI.getById(selectedPedido.id);
         setSelectedPedido(res.data);
+        setToast({ message: 'Nota fiscal removida com sucesso.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar nota fiscal:', error);
-        alert('Erro ao deletar nota fiscal');
+        setToast({
+          message: getApiErrorMessage(error, 'Não foi possível remover a nota fiscal agora.', 'Você parece estar sem conexão para remover a nota fiscal.'),
+          type: 'error'
+        });
       }
     }
   };

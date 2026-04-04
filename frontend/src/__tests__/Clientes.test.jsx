@@ -249,7 +249,7 @@ describe('Clientes', () => {
     fireEvent.click(deletarBtns[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('Erro ao deletar cliente.')).toBeInTheDocument();
+      expect(screen.getByText('Você parece estar sem conexão para remover o cliente.')).toBeInTheDocument();
     });
   });
 

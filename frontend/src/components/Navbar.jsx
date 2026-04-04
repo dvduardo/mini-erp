@@ -7,8 +7,6 @@ function Navbar({ currentPage, onNavigate }) {
 
   const handleLogout = async () => {
     await logout();
-    // Recarregar página para voltar à tela de login
-    window.location.reload();
   };
 
   return (

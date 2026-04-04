@@ -77,7 +77,7 @@ describe('produtoController', () => {
       await getProdutosByPedido(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível carregar os produtos do pedido agora.' });
     });
   });
 
@@ -152,7 +152,7 @@ describe('produtoController', () => {
       expect(dbRun).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'Campos obrigatórios: pedido_id, produto_receber, quantidade, valor_unitario, valor_item'
+        error: 'Preencha produto, quantidade, valor unitário e valor total do item.'
       });
     });
 
@@ -306,7 +306,7 @@ describe('produtoController', () => {
       await deleteProduto(req, res);
 
       expect(dbRun).toHaveBeenCalledWith('DELETE FROM pedido_produtos WHERE id = ?', ['1']);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Produto deletado com sucesso' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Produto removido com sucesso.' });
     });
 
     it('retorna 404 quando produto não existe', async () => {
@@ -329,7 +329,7 @@ describe('produtoController', () => {
       await deleteProduto(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível remover o produto agora.' });
     });
   });
 });

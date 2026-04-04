@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { clientesAPI } from '../services/api';
 import Toast from '../components/Toast';
+import { getApiErrorMessage } from '../utils/apiError';
 
 function Clientes() {
   const [clientes, setClientes] = useState([]);
@@ -33,6 +34,10 @@ function Clientes() {
       setClientes(response.data);
     } catch (error) {
       console.error('Erro ao carregar clientes:', error);
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível carregar os clientes agora.', 'Você parece estar sem conexão para carregar os clientes.'),
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -78,17 +83,20 @@ function Clientes() {
 
       if (editingId) {
         await clientesAPI.update(editingId, payload);
-        setToast({ message: 'Cliente atualizado com sucesso!', type: 'success' });
+        setToast({ message: 'Cliente atualizado com sucesso.', type: 'success' });
       } else {
         await clientesAPI.create(payload);
-        setToast({ message: 'Cliente criado com sucesso!', type: 'success' });
+        setToast({ message: 'Cliente cadastrado com sucesso.', type: 'success' });
       }
 
       loadClientes();
       handleCloseModal();
     } catch (error) {
       console.error('Erro ao salvar cliente:', error);
-      setToast({ message: error.response?.data?.error || 'Erro ao salvar cliente.', type: 'error' });
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível salvar o cliente agora.', 'Você parece estar sem conexão para salvar o cliente.'),
+        type: 'error'
+      });
     }
   };
 
@@ -97,10 +105,13 @@ function Clientes() {
       try {
         await clientesAPI.delete(id);
         loadClientes();
-        setToast({ message: 'Cliente removido.', type: 'info' });
+        setToast({ message: 'Cliente removido com sucesso.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar cliente:', error);
-        setToast({ message: 'Erro ao deletar cliente.', type: 'error' });
+        setToast({
+          message: getApiErrorMessage(error, 'Não foi possível remover o cliente agora.', 'Você parece estar sem conexão para remover o cliente.'),
+          type: 'error'
+        });
       }
     }
   };

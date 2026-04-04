@@ -61,7 +61,7 @@ describe('pedidoController', () => {
       await getPedidos(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível carregar a lista de pedidos agora.' });
     });
   });
 
@@ -224,7 +224,7 @@ describe('pedidoController', () => {
       expect(dbRun).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'Campos cliente_id e numero_pedido são obrigatórios'
+        error: 'Selecione o cliente e informe o número do pedido.'
       });
     });
 
@@ -248,7 +248,7 @@ describe('pedidoController', () => {
       await createPedido(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Número de pedido já existe' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Já existe um pedido com esse número.' });
     });
 
     it('retorna 500 em caso de erro genérico', async () => {
@@ -380,7 +380,7 @@ describe('pedidoController', () => {
       await deletePedido(req, res);
 
       expect(dbRun).toHaveBeenCalledTimes(3); // boletos, notas_fiscais, pedidos
-      expect(res.json).toHaveBeenCalledWith({ message: 'Pedido deletado com sucesso' });
+      expect(res.json).toHaveBeenCalledWith({ message: 'Pedido removido com sucesso.' });
     });
 
     it('retorna 404 quando pedido não existe', async () => {
@@ -403,7 +403,7 @@ describe('pedidoController', () => {
       await deletePedido(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'DB error' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Não foi possível remover o pedido agora.' });
     });
   });
 });

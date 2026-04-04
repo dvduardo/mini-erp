@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export const AuthContext = createContext();
 
@@ -7,25 +8,64 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sessionValidationFailed, setSessionValidationFailed] = useState(false);
+
+  const clearStoredSession = () => {
+    localStorage.removeItem('authToken');
+    setUser(null);
+    setError(null);
+    setSessionValidationFailed(false);
+  };
+
+  const validateStoredSession = async () => {
+    const token = localStorage.getItem('authToken');
+
+    if (!token) {
+      setSessionValidationFailed(false);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await authAPI.me();
+      setUser(response.data);
+      setError(null);
+      setSessionValidationFailed(false);
+    } catch (err) {
+      const status = err.response?.status;
+
+      if (status === 401 || status === 404) {
+        clearStoredSession();
+      } else {
+        console.error('Erro ao validar token:', err);
+        setSessionValidationFailed(true);
+        setError('Não conseguimos validar sua sessão agora. Tente novamente.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      localStorage.removeItem('authToken');
+      setUser(null);
+      setError('Sua sessão expirou. Faça login novamente.');
+      setSessionValidationFailed(false);
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, []);
 
   // Verificar se há token armazenado ao carregar
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      // Tentar obter dados do usuário com o token armazenado
-      authAPI.me()
-        .then(response => {
-          setUser(response.data);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error('Erro ao validar token:', err);
-          localStorage.removeItem('authToken');
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
+    validateStoredSession();
   }, []);
 
   const login = async (username, password) => {
@@ -37,10 +77,11 @@ export function AuthProvider({ children }) {
       // Armazenar token no localStorage
       localStorage.setItem('authToken', token);
       setUser(user);
+      setSessionValidationFailed(false);
       
       return true;
     } catch (err) {
-      const message = err.response?.data?.error || 'Erro ao fazer login';
+      const message = getApiErrorMessage(err, 'Não foi possível entrar agora. Tente novamente em instantes.', 'Não conseguimos conexão com o servidor para fazer seu login.');
       setError(message);
       return false;
     }
@@ -55,10 +96,11 @@ export function AuthProvider({ children }) {
       // Armazenar token no localStorage
       localStorage.setItem('authToken', token);
       setUser(user);
+      setSessionValidationFailed(false);
       
       return true;
     } catch (err) {
-      const message = err.response?.data?.error || 'Erro ao registrar';
+      const message = getApiErrorMessage(err, 'Não foi possível criar sua conta agora. Tente novamente em instantes.', 'Não conseguimos conexão com o servidor para criar sua conta.');
       setError(message);
       return false;
     }
@@ -70,8 +112,7 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error('Erro ao fazer logout:', err);
     } finally {
-      localStorage.removeItem('authToken');
-      setUser(null);
+      clearStoredSession();
     }
   };
 
@@ -81,7 +122,7 @@ export function AuthProvider({ children }) {
       const response = await authAPI.forgotPassword(email);
       return response.data.message;
     } catch (err) {
-      const message = err.response?.data?.error || 'Erro ao solicitar redefinição de senha';
+      const message = getApiErrorMessage(err, 'Não foi possível enviar o link de redefinição agora. Tente novamente em instantes.', 'Não conseguimos conexão com o servidor para enviar o link de redefinição.');
       setError(message);
       return false;
     }
@@ -93,7 +134,7 @@ export function AuthProvider({ children }) {
       const response = await authAPI.resetPassword(token, password);
       return response.data.message;
     } catch (err) {
-      const message = err.response?.data?.error || 'Erro ao redefinir senha';
+      const message = getApiErrorMessage(err, 'Não foi possível atualizar sua senha agora. Tente novamente em instantes.', 'Não conseguimos conexão com o servidor para atualizar sua senha.');
       setError(message);
       return false;
     }
@@ -111,7 +152,10 @@ export function AuthProvider({ children }) {
     resetPassword,
     clearError,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    sessionValidationFailed,
+    retrySessionValidation: validateStoredSession,
+    clearStoredSession
   };
 
   return (

@@ -139,6 +139,8 @@ describe('Home (Dashboard)', () => {
     await waitFor(() => {
       expect(screen.queryByText(/Carregando dados/i)).not.toBeInTheDocument();
     });
+
+    expect(screen.getByText('Você parece estar sem conexão para carregar o dashboard.')).toBeInTheDocument();
   });
 
   it('exibe valores padrão quando os dados são zero', async () => {

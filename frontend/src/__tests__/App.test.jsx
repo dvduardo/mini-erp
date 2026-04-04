@@ -31,7 +31,14 @@ vi.mock('../pages/Login', () => ({
 vi.mock('../App.css', () => ({}));
 vi.mock('../context/AuthContext', () => ({
   AuthProvider: ({ children }) => children,
-  useAuth: vi.fn(() => ({ isAuthenticated: true, loading: false }))
+  useAuth: vi.fn(() => ({
+    isAuthenticated: true,
+    loading: false,
+    error: null,
+    sessionValidationFailed: false,
+    retrySessionValidation: vi.fn(),
+    clearStoredSession: vi.fn()
+  }))
 }));
 
 import { useAuth } from '../context/AuthContext';
@@ -39,19 +46,84 @@ import App from '../App';
 
 describe('App', () => {
   beforeEach(() => {
-    useAuth.mockReturnValue({ isAuthenticated: true, loading: false });
+    useAuth.mockReturnValue({
+      isAuthenticated: true,
+      loading: false,
+      error: null,
+      sessionValidationFailed: false,
+      retrySessionValidation: vi.fn(),
+      clearStoredSession: vi.fn()
+    });
   });
 
   it('exibe "Carregando..." enquanto loading é true', () => {
-    useAuth.mockReturnValue({ isAuthenticated: false, loading: true });
+    useAuth.mockReturnValue({
+      isAuthenticated: false,
+      loading: true,
+      error: null,
+      sessionValidationFailed: false,
+      retrySessionValidation: vi.fn(),
+      clearStoredSession: vi.fn()
+    });
     render(<App />);
     expect(screen.getByText(/Carregando/i)).toBeInTheDocument();
   });
 
   it('exibe Login quando não autenticado', () => {
-    useAuth.mockReturnValue({ isAuthenticated: false, loading: false });
+    useAuth.mockReturnValue({
+      isAuthenticated: false,
+      loading: false,
+      error: null,
+      sessionValidationFailed: false,
+      retrySessionValidation: vi.fn(),
+      clearStoredSession: vi.fn()
+    });
     render(<App />);
     expect(screen.queryByTestId('navbar')).not.toBeInTheDocument();
+  });
+
+  it('exibe estado de recuperacao de sessao quando a validacao falha', () => {
+    useAuth.mockReturnValue({
+      isAuthenticated: false,
+      loading: false,
+      error: 'Não conseguimos validar sua sessão agora. Tente novamente.',
+      sessionValidationFailed: true,
+      retrySessionValidation: vi.fn(),
+      clearStoredSession: vi.fn()
+    });
+    render(<App />);
+    expect(screen.getByText(/Não foi possível restaurar sua sessão/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('page-login')).not.toBeInTheDocument();
+  });
+
+  it('aciona retrySessionValidation ao clicar em "Tentar novamente"', () => {
+    const retrySessionValidation = vi.fn();
+    useAuth.mockReturnValue({
+      isAuthenticated: false,
+      loading: false,
+      error: 'Não conseguimos validar sua sessão agora. Tente novamente.',
+      sessionValidationFailed: true,
+      retrySessionValidation,
+      clearStoredSession: vi.fn()
+    });
+    render(<App />);
+    fireEvent.click(screen.getByText(/Tentar novamente/i));
+    expect(retrySessionValidation).toHaveBeenCalled();
+  });
+
+  it('permite seguir para login ao clicar em "Ir para login"', () => {
+    const clearStoredSession = vi.fn();
+    useAuth.mockReturnValue({
+      isAuthenticated: false,
+      loading: false,
+      error: 'Não conseguimos validar sua sessão agora. Tente novamente.',
+      sessionValidationFailed: true,
+      retrySessionValidation: vi.fn(),
+      clearStoredSession
+    });
+    render(<App />);
+    fireEvent.click(screen.getByText(/Ir para login/i));
+    expect(clearStoredSession).toHaveBeenCalled();
   });
 
   it('renderiza a Navbar e a página Home por padrão', () => {

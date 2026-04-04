@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { boletosAPI, pedidosAPI } from '../services/api';
 import Toast from '../components/Toast';
 import { formatBRL } from '../utils/format';
+import { getApiErrorMessage } from '../utils/apiError';
 
 function Boletos() {
   const [boletos, setBoletos] = useState([]);
@@ -35,6 +36,10 @@ function Boletos() {
       loadBoletos();
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível carregar os dados dos boletos agora.', 'Você parece estar sem conexão para carregar os dados dos boletos.'),
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -46,6 +51,10 @@ function Boletos() {
       setBoletos(response.data);
     } catch (error) {
       console.error('Erro ao carregar boletos:', error);
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível carregar os boletos agora.', 'Você parece estar sem conexão para carregar os boletos.'),
+        type: 'error'
+      });
     }
   };
 
@@ -96,17 +105,20 @@ function Boletos() {
 
       if (editingId) {
         await boletosAPI.update(editingId, data);
-        setToast({ message: 'Boleto atualizado com sucesso!', type: 'success' });
+        setToast({ message: 'Boleto atualizado com sucesso.', type: 'success' });
       } else {
         await boletosAPI.create(data);
-        setToast({ message: 'Boleto criado com sucesso!', type: 'success' });
+        setToast({ message: 'Boleto cadastrado com sucesso.', type: 'success' });
       }
 
       loadBoletos();
       handleCloseModal();
     } catch (error) {
       console.error('Erro ao salvar boleto:', error);
-      setToast({ message: 'Erro ao salvar boleto.', type: 'error' });
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível salvar o boleto agora.', 'Você parece estar sem conexão para salvar o boleto.'),
+        type: 'error'
+      });
     }
   };
 
@@ -115,10 +127,13 @@ function Boletos() {
       try {
         await boletosAPI.delete(id);
         loadBoletos();
-        setToast({ message: 'Boleto removido.', type: 'info' });
+        setToast({ message: 'Boleto removido com sucesso.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar boleto:', error);
-        setToast({ message: 'Erro ao deletar boleto.', type: 'error' });
+        setToast({
+          message: getApiErrorMessage(error, 'Não foi possível remover o boleto agora.', 'Você parece estar sem conexão para remover o boleto.'),
+          type: 'error'
+        });
       }
     }
   };
@@ -133,7 +148,10 @@ function Boletos() {
       setToast({ message: `Boleto marcado como ${novoStatus}.`, type: 'success' });
     } catch (error) {
       console.error('Erro ao atualizar boleto:', error);
-      setToast({ message: 'Erro ao atualizar status.', type: 'error' });
+      setToast({
+        message: getApiErrorMessage(error, 'Não foi possível atualizar o status do boleto agora.', 'Você parece estar sem conexão para atualizar o status do boleto.'),
+        type: 'error'
+      });
     }
   };
 

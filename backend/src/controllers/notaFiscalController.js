@@ -4,6 +4,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import { uploadsDir, ensureUploadsDir } from '../config/storage.js';
+import { sendInternalError } from '../utils/httpErrors.js';
 
 function resolveUploadedFilePath(caminhoArquivo) {
   return path.join(uploadsDir, path.basename(caminhoArquivo));
@@ -50,7 +51,7 @@ export const getNotasFiscais = async (req, res) => {
     const notas = await dbAll(query, params);
     res.json(notas);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar as notas fiscais agora.', err, 'Erro ao listar notas fiscais:');
   }
 };
 
@@ -67,7 +68,7 @@ export const getNotaFiscalById = async (req, res) => {
     
     res.json(nota);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar os dados da nota fiscal agora.', err, 'Erro ao buscar nota fiscal por ID:');
   }
 };
 
@@ -81,7 +82,7 @@ export const uploadNotaFiscal = async (req, res) => {
     const { pedido_id, numero_nota_fiscal } = req.body;
     
     if (!pedido_id) {
-      return res.status(400).json({ error: 'Campo pedido_id é obrigatório' });
+      return res.status(400).json({ error: 'Selecione o pedido para anexar a nota fiscal.' });
     }
     
     // Verificar se pedido existe
@@ -110,11 +111,11 @@ export const uploadNotaFiscal = async (req, res) => {
     const nota = await dbGet('SELECT * FROM notas_fiscais WHERE id = ?', [result.id]);
     
     res.status(201).json({
-      message: 'Nota fiscal enviada com sucesso',
+      message: 'Nota fiscal enviada com sucesso.',
       nota
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível enviar a nota fiscal agora.', err, 'Erro ao fazer upload de nota fiscal:');
   }
 };
 
@@ -137,8 +138,8 @@ export const deleteNotaFiscal = async (req, res) => {
     // Deletar do banco de dados
     await dbRun('DELETE FROM notas_fiscais WHERE id = ?', [id]);
     
-    res.json({ message: 'Nota fiscal deletada com sucesso' });
+    res.json({ message: 'Nota fiscal removida com sucesso.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível remover a nota fiscal agora.', err, 'Erro ao deletar nota fiscal:');
   }
 };

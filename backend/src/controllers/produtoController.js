@@ -1,4 +1,5 @@
 import { dbRun, dbGet, dbAll } from '../config/database.js';
+import { sendInternalError } from '../utils/httpErrors.js';
 
 // Listar produtos de um pedido
 export const getProdutosByPedido = async (req, res) => {
@@ -12,7 +13,7 @@ export const getProdutosByPedido = async (req, res) => {
 
     res.json(produtos);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar os produtos do pedido agora.', err, 'Erro ao listar produtos do pedido:');
   }
 };
 
@@ -29,7 +30,7 @@ export const getProdutoById = async (req, res) => {
 
     res.json(produto);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível carregar os dados do produto agora.', err, 'Erro ao buscar produto por ID:');
   }
 };
 
@@ -40,7 +41,7 @@ export const createProduto = async (req, res) => {
 
     if (!pedido_id || !produto_receber || !quantidade || valor_unitario === undefined || valor_item === undefined) {
       return res.status(400).json({
-        error: 'Campos obrigatórios: pedido_id, produto_receber, quantidade, valor_unitario, valor_item'
+        error: 'Preencha produto, quantidade, valor unitário e valor total do item.'
       });
     }
 
@@ -60,7 +61,7 @@ export const createProduto = async (req, res) => {
     const produto = await dbGet('SELECT * FROM pedido_produtos WHERE id = ?', [result.id]);
     res.status(201).json(produto);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível salvar o produto agora.', err, 'Erro ao criar produto:');
   }
 };
 
@@ -97,7 +98,7 @@ export const updateProduto = async (req, res) => {
     const produtoAtualizado = await dbGet('SELECT * FROM pedido_produtos WHERE id = ?', [id]);
     res.json(produtoAtualizado);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível atualizar o produto agora.', err, 'Erro ao atualizar produto:');
   }
 };
 
@@ -113,8 +114,8 @@ export const deleteProduto = async (req, res) => {
 
     await dbRun('DELETE FROM pedido_produtos WHERE id = ?', [id]);
 
-    res.json({ message: 'Produto deletado com sucesso' });
+    res.json({ message: 'Produto removido com sucesso.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendInternalError(res, 'Não foi possível remover o produto agora.', err, 'Erro ao deletar produto:');
   }
 };

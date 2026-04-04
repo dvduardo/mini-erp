@@ -9,7 +9,14 @@ import Boletos from './pages/Boletos';
 import Login from './pages/Login';
 
 function AppContent() {
-  const { isAuthenticated, loading } = useAuth();
+  const {
+    isAuthenticated,
+    loading,
+    error,
+    sessionValidationFailed,
+    retrySessionValidation,
+    clearStoredSession
+  } = useAuth();
   const [currentPage, setCurrentPage] = useState('home');
 
   if (loading) {
@@ -17,6 +24,27 @@ function AppContent() {
       <div className="app">
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
           <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (sessionValidationFailed) {
+    return (
+      <div className="app">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '24px' }}>
+          <div style={{ maxWidth: '440px', textAlign: 'center' }}>
+            <h1>Não foi possível restaurar sua sessão</h1>
+            <p>{error || 'Tivemos um problema para verificar seu acesso salvo neste dispositivo.'}</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
+              <button type="button" className="btn-login" onClick={retrySessionValidation}>
+                Tentar novamente
+              </button>
+              <button type="button" className="btn-toggle" onClick={clearStoredSession}>
+                Ir para login
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

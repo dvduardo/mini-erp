@@ -1,14 +1,15 @@
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'seu-secret-key-mudeme-em-producao';
+import { getJwtSecret } from '../config/security.js';
 
 export function generateToken(userId) {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ userId }, getJwtSecret(), { expiresIn: '30d' });
 }
 
 export function verifyToken(token) {
+  const jwtSecret = getJwtSecret();
+
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, jwtSecret);
   } catch (error) {
     return null;
   }
