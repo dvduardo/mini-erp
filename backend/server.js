@@ -4,7 +4,8 @@ import { databaseReady } from './src/config/database.js';
 import { ensureUploadsDir, warnIfUsingLocalUploadsInProduction } from './src/config/storage.js';
 
 const PORT = process.env.PORT || 5001;
-const HOST = process.env.HOST || '127.0.0.1';
+const isProduction = process.env.NODE_ENV === 'production';
+const HOST = process.env.HOST || (isProduction ? '0.0.0.0' : '127.0.0.1');
 
 await databaseReady;
 ensureUploadsDir();
