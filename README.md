@@ -470,6 +470,8 @@ npm run dev
 npm test              # Roda testes Vitest
 npm run test:coverage # Mostra cobertura de código
 npm run backup        # Gera snapshot do banco e dos uploads
+npm run test:e2e      # Sobe backend/frontend de teste e executa Playwright
+npm run test:e2e:local # Usa servidores já iniciados manualmente
 ```
 
 ### Variáveis de Ambiente
@@ -542,6 +544,13 @@ npm run backup
 - Em SQLite, o comando copia `database.sqlite` e a pasta de uploads para `backend/backups/<timestamp>/`.
 - Em PostgreSQL, o comando usa `pg_dump` para gerar `database.sql` e também copia os uploads.
 - Para automatizar, agende `npm run backup` com cron ou no scheduler do seu provedor.
+
+### Testes E2E Estáveis
+
+- O Playwright foi configurado para usar `127.0.0.1` em vez de `localhost`, evitando problemas com resolução IPv6 (`::1`).
+- `npm run test:e2e` sobe backend e frontend automaticamente via `globalSetup`, sem depender de shell externo.
+- `npm run test:e2e:local` é útil quando você já está com os servidores rodando manualmente.
+- Variáveis opcionais para depuração: `E2E_HOST`, `E2E_FRONTEND_PORT`, `E2E_BACKEND_PORT`, `E2E_BASE_URL` e `E2E_API_URL`.
 
 ---
 

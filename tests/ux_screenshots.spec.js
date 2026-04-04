@@ -1,8 +1,9 @@
 import { test } from '@playwright/test';
+import { E2E_BASE_URL } from './e2e-env.js';
 
 test('capture all pages', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto('http://localhost:5174');
+  await page.goto(E2E_BASE_URL);
   await page.fill('input[name="username"]', 'testuser');
   await page.fill('input[name="password"]', 'test123');
   await page.click('button[type="submit"]');
