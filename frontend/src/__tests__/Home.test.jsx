@@ -59,7 +59,7 @@ describe('Home (Dashboard)', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Total Recebido/i)).toBeInTheDocument();
-      expect(screen.getByText(/1200\.50/)).toBeInTheDocument();
+      expect(screen.getByText('R$ 1.200,50')).toBeInTheDocument();
     });
   });
 
@@ -69,7 +69,7 @@ describe('Home (Dashboard)', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Total a Receber/i)).toBeInTheDocument();
-      expect(screen.getByText(/300\.00/)).toBeInTheDocument();
+      expect(screen.getByText('R$ 300,00')).toBeInTheDocument();
     });
   });
 
@@ -79,7 +79,7 @@ describe('Home (Dashboard)', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Total Geral/i)).toBeInTheDocument();
-      expect(screen.getByText(/1500\.50/)).toBeInTheDocument();
+      expect(screen.getByText('R$ 1.500,50')).toBeInTheDocument();
     });
   });
 
@@ -108,7 +108,7 @@ describe('Home (Dashboard)', () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Taxa de Recebimento/i)).toBeInTheDocument();
+      expect(screen.getByText(/Taxa de recebimento/i)).toBeInTheDocument();
       // 1200.50 / 1500.50 * 100 = ~80.0%
       expect(screen.getByText(/80\.0%/)).toBeInTheDocument();
     });
@@ -124,7 +124,7 @@ describe('Home (Dashboard)', () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/0%/)).toBeInTheDocument();
+      expect(screen.getByText(/0\.0%/)).toBeInTheDocument();
     });
   });
 
@@ -151,7 +151,7 @@ describe('Home (Dashboard)', () => {
     render(<Home />);
 
     await waitFor(() => {
-      const zeros = screen.getAllByText('R$ 0.00');
+      const zeros = screen.getAllByText('R$ 0,00');
       expect(zeros.length).toBeGreaterThanOrEqual(3);
     });
   });
@@ -166,7 +166,7 @@ describe('Home (Dashboard)', () => {
     render(<Home />);
 
     await waitFor(() => {
-      const zeros = screen.getAllByText('R$ 0.00');
+      const zeros = screen.getAllByText('R$ 0,00');
       expect(zeros.length).toBeGreaterThanOrEqual(3);
     });
   });

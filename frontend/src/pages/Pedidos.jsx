@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { pedidosAPI, clientesAPI, notasFiscaisAPI, produtosAPI } from '../services/api';
+import Toast from '../components/Toast';
+import { formatBRL } from '../utils/format';
 
 function Pedidos() {
   const [pedidos, setPedidos] = useState([]);
@@ -48,6 +50,7 @@ function Pedidos() {
   const [notaFiscalFile, setNotaFiscalFile] = useState(null);
   const [notaFiscalNumero, setNotaFiscalNumero] = useState('');
   const [uploadingNota, setUploadingNota] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -149,9 +152,10 @@ function Pedidos() {
 
       loadData();
       handleCloseModal();
+      setToast({ message: editingId ? 'Pedido atualizado com sucesso!' : 'Pedido criado com sucesso!', type: 'success' });
     } catch (error) {
       console.error('Erro ao salvar pedido:', error);
-      alert('Erro ao salvar pedido: ' + (error.response?.data?.error || error.message));
+      setToast({ message: 'Erro ao salvar pedido.', type: 'error' });
     }
   };
 
@@ -160,9 +164,10 @@ function Pedidos() {
       try {
         await pedidosAPI.delete(id);
         loadData();
+        setToast({ message: 'Pedido removido.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar pedido:', error);
-        alert('Erro ao deletar pedido');
+        setToast({ message: 'Erro ao deletar pedido.', type: 'error' });
       }
     }
   };
@@ -209,13 +214,13 @@ function Pedidos() {
         valor_icms_st: produtoFormData.valor_icms_st ? parseFloat(produtoFormData.valor_icms_st) : null
       });
 
-      // Recarregar detalhes do pedido
       const res = await pedidosAPI.getById(selectedPedido.id);
       setSelectedPedido(res.data);
       handleCloseProdutoModal();
+      setToast({ message: 'Produto adicionado com sucesso!', type: 'success' });
     } catch (error) {
       console.error('Erro ao adicionar produto:', error);
-      alert('Erro ao adicionar produto: ' + error.response?.data?.error || error.message);
+      setToast({ message: 'Erro ao adicionar produto.', type: 'error' });
     }
   };
 
@@ -225,9 +230,10 @@ function Pedidos() {
         await produtosAPI.delete(produtoId);
         const res = await pedidosAPI.getById(selectedPedido.id);
         setSelectedPedido(res.data);
+        setToast({ message: 'Produto removido.', type: 'info' });
       } catch (error) {
         console.error('Erro ao deletar produto:', error);
-        alert('Erro ao deletar produto');
+        setToast({ message: 'Erro ao deletar produto.', type: 'error' });
       }
     }
   };
@@ -271,6 +277,7 @@ function Pedidos() {
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="page-header">
         <h2>Pedidos</h2>
         <button onClick={() => handleOpenModal()}>+ Novo Pedido</button>
@@ -279,7 +286,10 @@ function Pedidos() {
       {loading ? (
         <p className="loading">Carregando pedidos...</p>
       ) : pedidos.length === 0 ? (
-        <p className="empty">Nenhum pedido cadastrado</p>
+        <div className="empty-state">
+          <p>Nenhum pedido cadastrado ainda.</p>
+          <button onClick={() => handleOpenModal()}>+ Criar primeiro pedido</button>
+        </div>
       ) : (
         <div className="table-container">
           <table>
@@ -302,9 +312,11 @@ function Pedidos() {
                   <td>{pedido.data_entrega ? new Date(pedido.data_entrega).toLocaleDateString('pt-BR') : '-'}</td>
                   <td>{pedido.status}</td>
                   <td>
-                    <button onClick={() => handleViewDetails(pedido)}>Detalhes</button>
-                    <button onClick={() => handleOpenModal(pedido)}>Editar</button>
-                    <button className="danger" onClick={() => handleDelete(pedido.id)}>Deletar</button>
+                    <div className="btn-group">
+                      <button onClick={() => handleViewDetails(pedido)}>Detalhes</button>
+                      <button onClick={() => handleOpenModal(pedido)}>Editar</button>
+                      <button className="danger" onClick={() => handleDelete(pedido.id)}>Deletar</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -632,7 +644,7 @@ function Pedidos() {
               <p><strong>Número:</strong> {selectedPedido.numero_pedido}</p>
               <p><strong>Data de Emissão:</strong> {selectedPedido.data_emissao ? new Date(selectedPedido.data_emissao).toLocaleDateString('pt-BR') : '-'}</p>
               <p><strong>Data de Entrega:</strong> {selectedPedido.data_entrega ? new Date(selectedPedido.data_entrega).toLocaleDateString('pt-BR') : '-'}</p>
-              <p><strong>Total:</strong> R$ {selectedPedido.total_pedido?.toFixed(2) || '0.00'}</p>
+              <p><strong>Total:</strong> R$ {formatBRL(selectedPedido.total_pedido)}</p>
               <p><strong>Status:</strong> {selectedPedido.status}</p>
 
               <h4>Endereço de Entrega:</h4>
@@ -676,10 +688,10 @@ function Pedidos() {
                           <td>{produto.produto_receber}</td>
                           <td>{produto.embalagem || '-'}</td>
                           <td>{produto.quantidade}</td>
-                          <td>R$ {produto.valor_unitario?.toFixed(2) || '0.00'}</td>
-                          <td>R$ {produto.valor_item?.toFixed(2) || '0.00'}</td>
-                          <td>R$ {produto.custo_bruto?.toFixed(2) || '-'}</td>
-                          <td>R$ {produto.valor_icms_st?.toFixed(2) || '-'}</td>
+                          <td>R$ {formatBRL(produto.valor_unitario)}</td>
+                          <td>R$ {formatBRL(produto.valor_item)}</td>
+                          <td>{produto.custo_bruto != null ? `R$ ${formatBRL(produto.custo_bruto)}` : '-'}</td>
+                          <td>{produto.valor_icms_st != null ? `R$ ${formatBRL(produto.valor_icms_st)}` : '-'}</td>
                           <td>
                             <button className="danger" onClick={() => handleDeleteProduto(produto.id)} style={{ padding: '3px 8px', fontSize: '12px' }}>Deletar</button>
                           </td>
@@ -707,7 +719,7 @@ function Pedidos() {
                     {selectedPedido.boletos.map((boleto) => (
                       <tr key={boleto.id}>
                         <td>{boleto.numero_boleto || '-'}</td>
-                        <td>R$ {boleto.valor.toFixed(2)}</td>
+                        <td>R$ {formatBRL(boleto.valor)}</td>
                         <td>{new Date(boleto.data_vencimento).toLocaleDateString('pt-BR')}</td>
                         <td>{boleto.status_pagamento}</td>
                       </tr>

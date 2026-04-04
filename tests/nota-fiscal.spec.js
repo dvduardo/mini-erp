@@ -67,6 +67,14 @@ async function getAuthToken(request) {
   throw new Error(`Falha na autenticação: login retornou ${loginRes.status()}`);
 }
 
+async function openAuthenticatedApp(page, token) {
+  await page.addInitScript((authToken) => {
+    window.localStorage.setItem('authToken', authToken);
+  }, token);
+  await page.goto(BASE);
+  await expect(page.locator('nav')).toBeVisible();
+}
+
 async function criarCliente(request, token) {
   const id = uid();
   const res = await request.post(`${API}/clientes`, {
@@ -340,7 +348,7 @@ test.describe('Frontend E2E - Nota Fiscal no Pedido', () => {
   });
 
   async function abrirDetalhesDoPedido(page) {
-    await page.goto(BASE);
+    await openAuthenticatedApp(page, token);
     await page.click('text=Pedidos');
     await page.waitForLoadState('networkidle');
 

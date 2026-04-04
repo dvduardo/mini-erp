@@ -57,6 +57,16 @@ async function getAuthToken(request) {
   throw new Error(`Falha na autenticação: login retornou ${loginRes.status()}`);
 }
 
+async function openAuthenticatedApp(page, request) {
+  const token = await getAuthToken(request);
+  await page.addInitScript((authToken) => {
+    window.localStorage.setItem('authToken', authToken);
+  }, token);
+  await page.goto(BASE);
+  await expect(page.locator('nav')).toBeVisible();
+  return token;
+}
+
 // ─── BACKEND DIRETO ──────────────────────────────────────────────────────────
 
 test.describe('API Backend', () => {
@@ -270,43 +280,43 @@ test.describe('API Backend', () => {
 // ─── FRONTEND E2E ────────────────────────────────────────────────────────────
 
 test.describe('Frontend - Navegação', () => {
+  test.beforeEach(async ({ page, request }) => {
+    await openAuthenticatedApp(page, request);
+  });
+
   test('carrega a página inicial', async ({ page }) => {
-    await page.goto(BASE);
-    await expect(page.locator('nav, header')).toBeVisible();
+    await expect(page.locator('nav')).toBeVisible();
   });
 
   test('navega para Clientes', async ({ page }) => {
-    await page.goto(BASE);
     await page.click('text=Clientes');
     await expect(page.locator('h2:has-text("Clientes")')).toBeVisible();
   });
 
   test('navega para Pedidos', async ({ page }) => {
-    await page.goto(BASE);
     await page.click('text=Pedidos');
     await expect(page.locator('h2:has-text("Pedidos")')).toBeVisible();
   });
 
   test('navega para Boletos', async ({ page }) => {
-    await page.goto(BASE);
     await page.click('text=Boletos');
     await expect(page.locator('h2:has-text("Boletos")')).toBeVisible();
   });
 });
 
 test.describe('Frontend - Clientes', () => {
+  test.beforeEach(async ({ page, request }) => {
+    await openAuthenticatedApp(page, request);
+  });
+
   test('abre modal de novo cliente', async ({ page }) => {
-    await page.goto(BASE);
     await page.click('text=Clientes');
     await page.click('button:has-text("Novo Cliente")');
     await expect(page.locator('.modal.active, [role="dialog"]')).toBeVisible();
     await expect(page.locator('label:has-text("Nome / Contato")')).toBeVisible();
   });
 
-  test('cria um cliente pelo formulário', async ({ page, request }) => {
-    const token = await getAuthToken(request);
-    
-    await page.goto(BASE);
+  test('cria um cliente pelo formulário', async ({ page }) => {
     await page.click('text=Clientes');
     await page.click('button:has-text("Novo Cliente")');
 
@@ -325,8 +335,11 @@ test.describe('Frontend - Clientes', () => {
 });
 
 test.describe('Frontend - Pedidos', () => {
+  test.beforeEach(async ({ page, request }) => {
+    await openAuthenticatedApp(page, request);
+  });
+
   test('modal de novo pedido tem campo Data de Emissão', async ({ page }) => {
-    await page.goto(BASE);
     await page.click('text=Pedidos');
     await page.click('button:has-text("Novo Pedido")');
     await expect(page.locator('.modal.active, [role="dialog"]')).toBeVisible();
@@ -334,7 +347,6 @@ test.describe('Frontend - Pedidos', () => {
   });
 
   test('modal de novo pedido tem seção de Produtos', async ({ page }) => {
-    await page.goto(BASE);
     await page.click('text=Pedidos');
     await page.click('button:has-text("Novo Pedido")');
     await expect(page.locator('text=Produtos do Pedido')).toBeVisible();
@@ -344,7 +356,6 @@ test.describe('Frontend - Pedidos', () => {
   });
 
   test('botão + Adicionar Produto adiciona novo bloco de produto', async ({ page }) => {
-    await page.goto(BASE);
     await page.click('text=Pedidos');
     await page.click('button:has-text("Novo Pedido")');
 

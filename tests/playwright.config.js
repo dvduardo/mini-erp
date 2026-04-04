@@ -38,8 +38,21 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: undefined,
-  // Nota: Execute `NODE_ENV=test node backend/server.js` e `npm run dev --prefix frontend` antes de rodar os testes
-  webServer: undefined,
+  /* Run local servers before starting the tests */
+  webServer: [
+    {
+      command: 'NODE_ENV=test node server.js',
+      cwd: './backend',
+      url: 'http://localhost:5001/api/health',
+      reuseExistingServer: !process.env.CI,
+      timeout: 30 * 1000,
+    },
+    {
+      command: 'npm run dev -- --port 3000',
+      cwd: './frontend',
+      url: 'http://localhost:3000',
+      reuseExistingServer: !process.env.CI,
+      timeout: 30 * 1000,
+    },
+  ],
 });

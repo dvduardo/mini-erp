@@ -503,7 +503,7 @@ describe('Pedidos', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalled();
+      expect(screen.getByText('Erro ao salvar pedido.')).toBeInTheDocument();
     });
   });
 
@@ -518,7 +518,7 @@ describe('Pedidos', () => {
     fireEvent.click(deletarBtns[0]);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('Erro ao deletar pedido');
+      expect(screen.getByText('Erro ao deletar pedido.')).toBeInTheDocument();
     });
   });
 
@@ -690,7 +690,7 @@ describe('Pedidos', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalled();
+      expect(screen.getByText('Erro ao adicionar produto.')).toBeInTheDocument();
     });
   });
 
@@ -709,7 +709,7 @@ describe('Pedidos', () => {
     fireEvent.click(deletarBtns[deletarBtns.length - 1]);
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('Erro ao deletar produto');
+      expect(screen.getByText('Erro ao deletar produto.')).toBeInTheDocument();
     });
   });
 

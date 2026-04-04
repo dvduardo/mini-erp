@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { boletosAPI, clientesAPI, pedidosAPI } from '../services/api';
+import { formatBRL } from '../utils/format';
 
 function Home() {
   const [resumo, setResumo] = useState({
@@ -77,17 +78,17 @@ function Home() {
       <div className="dashboard-grid">
         <div className="card positive">
           <h3>Total Recebido</h3>
-          <div className="value">R$ {(Number(resumo.totalRecebido) || 0).toFixed(2)}</div>
+          <div className="value">R$ {formatBRL(resumo.totalRecebido)}</div>
         </div>
 
         <div className="card negative">
           <h3>Total a Receber</h3>
-          <div className="value">R$ {(Number(resumo.totalAReceber) || 0).toFixed(2)}</div>
+          <div className="value">R$ {formatBRL(resumo.totalAReceber)}</div>
         </div>
 
         <div className="card">
           <h3>Total Geral</h3>
-          <div className="value">R$ {(Number(resumo.totalGeral) || 0).toFixed(2)}</div>
+          <div className="value">R$ {formatBRL(resumo.totalGeral)}</div>
         </div>
 
         <div className="card">
@@ -103,13 +104,28 @@ function Home() {
 
       <div className="card">
         <h3>Resumo Financeiro</h3>
-        <p>
-          <strong>Taxa de Recebimento:</strong>{' '}
-          {Number(resumo.totalGeral) > 0
-            ? ((Number(resumo.totalRecebido) / Number(resumo.totalGeral)) * 100).toFixed(1)
-            : 0}
-          %
-        </p>
+        {(() => {
+          const pct = Number(resumo.totalGeral) > 0
+            ? Math.min(100, (Number(resumo.totalRecebido) / Number(resumo.totalGeral)) * 100)
+            : 0;
+          return (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '8px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Taxa de recebimento</span>
+                <span style={{ fontSize: '22px', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--color-success)' }}>
+                  {pct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="progress-bar-track">
+                <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                <span>Recebido: R$ {formatBRL(resumo.totalRecebido)}</span>
+                <span>Total: R$ {formatBRL(resumo.totalGeral)}</span>
+              </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   );
