@@ -559,7 +559,17 @@ npm run backup
 
 - Em SQLite, o comando copia `database.sqlite` e a pasta de uploads para `backend/backups/<timestamp>/`.
 - Em PostgreSQL, o comando usa `pg_dump` para gerar `database.sql` e também copia os uploads.
-- Para automatizar, agende `npm run backup` com cron ou no scheduler do seu provedor.
+- O backend agora também pode agendar esse job sozinho com `BACKUP_SCHEDULE_ENABLED=true`, intervalo em `BACKUP_INTERVAL_HOURS` e limpeza por retenção em `BACKUP_RETENTION_DAYS`.
+- Se `GOOGLE_DRIVE_BACKUP_ENABLED=true`, o backup recém-gerado também é enviado para a pasta configurada em `GOOGLE_DRIVE_FOLDER_ID` usando uma service account do Google.
+- Você pode autenticar pelo arquivo `GOOGLE_SERVICE_ACCOUNT_JSON` ou pelo par `GOOGLE_SERVICE_ACCOUNT_EMAIL` + `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`.
+- Compartilhe a pasta de destino do Drive com o e-mail da service account para permitir o upload.
+
+### Migrando para Railway
+
+- O repositório já inclui [`railway.json`](/Users/david/Documents/projetos/mini-erp/railway.json) com `build`, `start` e `healthcheck` prontos para um deploy único servindo frontend + backend.
+- Use um volume persistente montado em `/data` e configure `UPLOADS_DIR=/data/uploads` e `BACKUP_DIR=/data/backups`.
+- Conecte um PostgreSQL do Railway para receber `DATABASE_URL` automaticamente.
+- Para restaurar dados do Heroku e validar a troca com calma, siga [`docs/railway-migration.md`](/Users/david/Documents/projetos/mini-erp/docs/railway-migration.md).
 
 ### Testes E2E Estáveis
 

@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "Tests for Mini ERP",
   "scripts": {
-    "build": "cd frontend && NODE_ENV=development npm install && npx vite build && cd ..",
+    "build": "npm run build --prefix frontend",
+    "start": "npm start --prefix backend",
     "test": "playwright test --config tests/playwright.config.js",
     "test:e2e": "playwright test --config tests/playwright.config.js",
     "test:e2e:local": "playwright test --config tests/playwright.local.config.js",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
-    "postinstall": "npm install --prefix backend"
+    "postinstall": "npm install --prefix backend && npm install --prefix frontend"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1"

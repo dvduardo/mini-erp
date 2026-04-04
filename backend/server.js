@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import app from './src/app.js';
+import { startBackupScheduler } from './src/config/backup.js';
 import { databaseReady } from './src/config/database.js';
 import { ensureUploadsDir, warnIfUsingLocalUploadsInProduction } from './src/config/storage.js';
 import { validateSecurityConfig } from './src/config/security.js';
@@ -12,6 +13,7 @@ validateSecurityConfig();
 await databaseReady;
 ensureUploadsDir();
 warnIfUsingLocalUploadsInProduction();
+startBackupScheduler();
 
 app.listen(PORT, HOST, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);

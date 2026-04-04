@@ -2,4 +2,6 @@ node_modules/
 .env
 database.sqlite
 uploads/
+backups/
+secrets/
 *.log
