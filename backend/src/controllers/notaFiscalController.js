@@ -1,19 +1,18 @@
 import { dbRun, dbGet, dbAll } from '../config/database.js';
 import multer from 'multer';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import { uploadsDir, ensureUploadsDir } from '../config/storage.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+function resolveUploadedFilePath(caminhoArquivo) {
+  return path.join(uploadsDir, path.basename(caminhoArquivo));
+}
 
 // Configurar multer para upload de arquivos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadsDir = path.join(__dirname, '../../uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
+    ensureUploadsDir();
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
@@ -94,7 +93,7 @@ export const uploadNotaFiscal = async (req, res) => {
     // Deletar nota fiscal anterior se existir
     const notaExistente = await dbGet('SELECT * FROM notas_fiscais WHERE pedido_id = ?', [pedido_id]);
     if (notaExistente) {
-      const caminhoAntigo = path.join(__dirname, '../../', notaExistente.caminho_arquivo);
+      const caminhoAntigo = resolveUploadedFilePath(notaExistente.caminho_arquivo);
       if (fs.existsSync(caminhoAntigo)) {
         fs.unlinkSync(caminhoAntigo);
       }
@@ -130,7 +129,7 @@ export const deleteNotaFiscal = async (req, res) => {
     }
     
     // Deletar arquivo físico
-    const caminhoArquivo = path.join(__dirname, '../../', nota.caminho_arquivo);
+    const caminhoArquivo = resolveUploadedFilePath(nota.caminho_arquivo);
     if (fs.existsSync(caminhoArquivo)) {
       fs.unlinkSync(caminhoArquivo);
     }

@@ -1,10 +1,13 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import app from './src/app.js';
-
-// Carregar variáveis de ambiente
-dotenv.config();
+import { databaseReady } from './src/config/database.js';
+import { ensureUploadsDir, warnIfUsingLocalUploadsInProduction } from './src/config/storage.js';
 
 const PORT = process.env.PORT || 5001;
+
+await databaseReady;
+ensureUploadsDir();
+warnIfUsingLocalUploadsInProduction();
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);

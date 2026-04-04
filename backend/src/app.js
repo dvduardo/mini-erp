@@ -15,6 +15,7 @@ import authRoutes from './routes/authRoutes.js';
 
 // Importar middleware de autenticação
 import { authMiddleware } from './middleware/auth.js';
+import { uploadsDir } from './config/storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -40,7 +41,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Servir arquivos estáticos (uploads)
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(uploadsDir));
 
 // Servir frontend estático em produção
 const frontendDistPath = path.join(__dirname, '../../frontend/dist');
