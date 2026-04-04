@@ -4,9 +4,19 @@ import React from 'react';
 
 const mockLogin = vi.fn();
 const mockRegister = vi.fn();
+const mockForgotPassword = vi.fn();
+const mockResetPassword = vi.fn();
+const mockClearError = vi.fn();
 
 vi.mock('../context/AuthContext', () => ({
-  useAuth: vi.fn(() => ({ login: mockLogin, register: mockRegister, error: null }))
+  useAuth: vi.fn(() => ({
+    login: mockLogin,
+    register: mockRegister,
+    forgotPassword: mockForgotPassword,
+    resetPassword: mockResetPassword,
+    clearError: mockClearError,
+    error: null
+  }))
 }));
 
 vi.mock('../styles/Login.css', () => ({}));
@@ -19,7 +29,15 @@ describe('Login', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuth.mockReturnValue({ login: mockLogin, register: mockRegister, error: null });
+    window.history.replaceState({}, '', '/');
+    useAuth.mockReturnValue({
+      login: mockLogin,
+      register: mockRegister,
+      forgotPassword: mockForgotPassword,
+      resetPassword: mockResetPassword,
+      clearError: mockClearError,
+      error: null
+    });
   });
 
   it('renderiza formulário de login por padrão', () => {
@@ -88,8 +106,45 @@ describe('Login', () => {
   });
 
   it('exibe mensagem de erro quando useAuth retorna erro', () => {
-    useAuth.mockReturnValue({ login: mockLogin, register: mockRegister, error: 'Credenciais inválidas' });
+    useAuth.mockReturnValue({
+      login: mockLogin,
+      register: mockRegister,
+      forgotPassword: mockForgotPassword,
+      resetPassword: mockResetPassword,
+      clearError: mockClearError,
+      error: 'Credenciais inválidas'
+    });
     render(<Login onLoginSuccess={onLoginSuccess} />);
     expect(screen.getByText('Credenciais inválidas')).toBeInTheDocument();
+  });
+
+  it('abre fluxo de recuperação e envia email informado', async () => {
+    mockForgotPassword.mockResolvedValue('Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.');
+    render(<Login onLoginSuccess={onLoginSuccess} />);
+
+    fireEvent.click(screen.getByText(/Esqueci minha senha/i));
+    fireEvent.change(screen.getByLabelText(/Email cadastrado/i), { target: { name: 'email', value: 'a@b.com' } });
+    fireEvent.submit(screen.getByText(/Enviar link/i).closest('form'));
+
+    await waitFor(() => {
+      expect(mockForgotPassword).toHaveBeenCalledWith('a@b.com');
+      expect(screen.getByText(/enviaremos um link/i)).toBeInTheDocument();
+    });
+  });
+
+  it('abre fluxo de reset por token na url e redefine senha', async () => {
+    mockResetPassword.mockResolvedValue('Senha redefinida com sucesso');
+    window.history.replaceState({}, '', '/?resetToken=abc123');
+    render(<Login onLoginSuccess={onLoginSuccess} />);
+
+    expect(screen.getByText(/Cadastre sua nova senha/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Nova senha'), { target: { name: 'password', value: 'nova123' } });
+    fireEvent.change(screen.getByLabelText('Confirmar nova senha'), { target: { name: 'confirmPassword', value: 'nova123' } });
+    fireEvent.submit(screen.getByText(/Salvar nova senha/i).closest('form'));
+
+    await waitFor(() => {
+      expect(mockResetPassword).toHaveBeenCalledWith('abc123', 'nova123');
+      expect(screen.getByText(/Faça seu login/i)).toBeInTheDocument();
+    });
   });
 });

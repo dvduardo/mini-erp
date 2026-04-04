@@ -75,12 +75,41 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const forgotPassword = async (email) => {
+    try {
+      setError(null);
+      const response = await authAPI.forgotPassword(email);
+      return response.data.message;
+    } catch (err) {
+      const message = err.response?.data?.error || 'Erro ao solicitar redefinição de senha';
+      setError(message);
+      return false;
+    }
+  };
+
+  const resetPassword = async (token, password) => {
+    try {
+      setError(null);
+      const response = await authAPI.resetPassword(token, password);
+      return response.data.message;
+    } catch (err) {
+      const message = err.response?.data?.error || 'Erro ao redefinir senha';
+      setError(message);
+      return false;
+    }
+  };
+
+  const clearError = () => setError(null);
+
   const value = {
     user,
     loading,
     error,
     login,
     register,
+    forgotPassword,
+    resetPassword,
+    clearError,
     logout,
     isAuthenticated: !!user
   };

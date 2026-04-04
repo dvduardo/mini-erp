@@ -136,6 +136,23 @@
   font-size: 13px;
 }
 
+.success-message {
+  padding: 11px 14px;
+  background: #EEF7E8;
+  border: 1px solid #CFE3BD;
+  border-left: 3px solid #4A7C2F;
+  border-radius: 6px;
+  color: #294619;
+  font-size: 13px;
+}
+
+.helper-message {
+  margin: -2px 0 0;
+  color: #7A6952;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .btn-login {
   padding: 13px;
   background: #4A7C2F;
@@ -176,6 +193,10 @@
   color: #7A6952;
   font-size: 13px;
   margin: 0;
+}
+
+.login-footer-secondary {
+  margin-top: 10px;
 }
 
 .btn-toggle {
