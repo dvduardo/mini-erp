@@ -77,6 +77,17 @@ function Boletos() {
     setEditingId(null);
   };
 
+  const handlePedidoChange = (pedidoId) => {
+    const pedidoSelecionado = pedidos.find((pedido) => String(pedido.id) === String(pedidoId));
+    const valorPedido = pedidoSelecionado?.total_pedido;
+
+    setFormData((currentData) => ({
+      ...currentData,
+      pedido_id: pedidoId,
+      valor: valorPedido !== undefined && valorPedido !== null ? String(valorPedido) : currentData.valor
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -202,7 +213,10 @@ function Boletos() {
       {showModal && (
         <div className="modal active">
           <div className="modal-content">
-            <h3>{editingId ? 'Editar Boleto' : 'Novo Boleto'}</h3>
+            <div className="modal-header">
+              <h3>{editingId ? 'Editar Boleto' : 'Novo Boleto'}</h3>
+              <button type="button" className="modal-close" aria-label="Fechar janela" onClick={handleCloseModal}>×</button>
+            </div>
             
             <form onSubmit={handleSubmit}>
               <div className="form-row">
@@ -210,7 +224,7 @@ function Boletos() {
                   <label>Pedido *</label>
                   <select
                     value={formData.pedido_id}
-                    onChange={(e) => setFormData({ ...formData, pedido_id: e.target.value })}
+                    onChange={(e) => handlePedidoChange(e.target.value)}
                     required
                     disabled={editingId !== null}
                   >

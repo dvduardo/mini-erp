@@ -2,5 +2,6 @@ import baseConfig from './playwright.config.js';
 
 export default {
   ...baseConfig,
-  webServer: undefined,
+  globalSetup: undefined,
+  globalTeardown: undefined,
 };

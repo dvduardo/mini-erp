@@ -375,6 +375,26 @@ form textarea:focus {
   box-shadow: 0 0 0 3px rgba(196, 137, 42, 0.15);
 }
 
+.form-helper {
+  margin: 8px 0 0;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border-light);
+  background: var(--color-surface-warm);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.form-helper.is-filled {
+  color: var(--color-success);
+  border-color: rgba(45, 106, 79, 0.2);
+  background: rgba(45, 106, 79, 0.08);
+}
+
+.form-helper.is-muted {
+  color: var(--color-text-muted);
+}
+
 /* ─── Botões ─── */
 
 button {
@@ -460,11 +480,37 @@ button.btn-sm {
   border-top: 4px solid var(--color-accent);
 }
 
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 .modal-content h3 {
   font-family: var(--font-display);
   font-size: 20px;
   color: var(--color-text);
-  margin: 0 0 24px;
+  margin: 0;
+}
+
+.modal-close {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 26px;
+  line-height: 1;
+  padding: 0;
+  min-width: auto;
+  box-shadow: none;
+}
+
+.modal-close:hover {
+  background: transparent;
+  color: var(--color-text);
+  transform: none;
+  box-shadow: none;
 }
 
 .modal-buttons {

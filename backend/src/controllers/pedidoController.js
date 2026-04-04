@@ -1,5 +1,13 @@
 import { dbRun, dbGet, dbAll } from '../config/database.js';
 
+const getEnderecoEntrega = (pedidoValue, clienteValue) => {
+  if (pedidoValue !== undefined && pedidoValue !== null && pedidoValue !== '') {
+    return pedidoValue;
+  }
+
+  return clienteValue || '';
+};
+
 // Listar todos os pedidos
 export const getPedidos = async (req, res) => {
   try {
@@ -61,10 +69,15 @@ export const createPedido = async (req, res) => {
       return res.status(404).json({ error: 'Cliente não encontrado' });
     }
 
+    const enderecoEntregaFinal = getEnderecoEntrega(endereco_entrega, cliente.endereco);
+    const bairroEntregaFinal = getEnderecoEntrega(bairro_entrega, cliente.bairro);
+    const cidadeEntregaFinal = getEnderecoEntrega(cidade_entrega, cliente.cidade);
+    const cepEntregaFinal = getEnderecoEntrega(cep_entrega, cliente.cep);
+
     const result = await dbRun(
       `INSERT INTO pedidos (cliente_id, numero_pedido, data_emissao, data_entrega, observacoes, endereco_entrega, bairro_entrega, cidade_entrega, cep_entrega, total_pedido)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
-      [cliente_id, numero_pedido, data_emissao || null, data_entrega, observacoes, endereco_entrega, bairro_entrega, cidade_entrega, cep_entrega, total_pedido || 0]
+      [cliente_id, numero_pedido, data_emissao || null, data_entrega, observacoes, enderecoEntregaFinal, bairroEntregaFinal, cidadeEntregaFinal, cepEntregaFinal, total_pedido || 0]
     );
 
     const pedido = await dbGet(`

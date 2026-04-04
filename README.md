@@ -462,13 +462,16 @@ npm run dev
 
 **Ao iniciar:**
 1. Verifica se `database.sqlite` existe (se não, cria)
-2. Executa todas as migrations em `./migrations/`
+2. Cria a tabela `schema_migrations` se necessário e executa apenas migrations pendentes
 3. Server escuta na porta 5001
 
 **Outros comandos:**
 ```bash
 npm test              # Roda testes Vitest
 npm run test:coverage # Mostra cobertura de código
+npm run backup        # Gera snapshot do banco e dos uploads
+npm run test:e2e      # Sobe backend/frontend de teste e executa Playwright
+npm run test:e2e:local # Usa servidores já iniciados manualmente
 ```
 
 ### Variáveis de Ambiente
@@ -479,6 +482,9 @@ PORT=5001
 NODE_ENV=development
 JWT_SECRET=sua-chave-super-secreta-mudeme-em-producao
 DATABASE_URL=  # Deixe vazio para usar SQLite local
+ALLOW_SQLITE_IN_PRODUCTION=false
+UPLOADS_DIR=   # Opcional: diretório persistente para PDFs
+BACKUP_DIR=    # Opcional: diretório onde backups serão gravados
 ```
 
 ---
@@ -515,11 +521,36 @@ Acesse `http://localhost:5173` em seu navegador e comece!
 ## 📋 Notas Importantes
 
 - **Banco de Dados**: SQLite é criado automaticamente em `/backend/database.sqlite`
-- **Migrations**: Executadas automaticamente ao iniciar o backend
+- **Migrations**: Executadas automaticamente ao iniciar o backend e registradas em `schema_migrations`
 - **JWT Secret**: Mude em produção! (variável `JWT_SECRET`)
 - **CORS**: Frontend acessa API em `http://localhost:5001` (desenvolvido localmente em `http://localhost:5173`)
-- **Upload de Arquivos**: Notas Fiscais salvas em `/backend/uploads/` (criar pasta se não existir)
+- **Upload de Arquivos**: Notas Fiscais salvas em `/backend/uploads/` por padrão, ou em `UPLOADS_DIR`
 - **Soft Delete**: Clientes deletados mantêm histórico (campo `deleted_at`)
+
+### Produção Segura
+
+- Configure `DATABASE_URL` para usar PostgreSQL persistente em produção.
+- Sem `DATABASE_URL`, o backend falha em produção por padrão. Só use `ALLOW_SQLITE_IN_PRODUCTION=true` se você realmente tiver disco persistente e backup periódico.
+- Migrations destrutivas legadas não são reaplicadas em bases existentes, evitando perda de dados em restart ou deploy.
+- Para PDFs, prefira `UPLOADS_DIR` apontando para volume persistente ou storage externo.
+
+### Backup Periódico
+
+```bash
+cd backend
+npm run backup
+```
+
+- Em SQLite, o comando copia `database.sqlite` e a pasta de uploads para `backend/backups/<timestamp>/`.
+- Em PostgreSQL, o comando usa `pg_dump` para gerar `database.sql` e também copia os uploads.
+- Para automatizar, agende `npm run backup` com cron ou no scheduler do seu provedor.
+
+### Testes E2E Estáveis
+
+- O Playwright foi configurado para usar `127.0.0.1` em vez de `localhost`, evitando problemas com resolução IPv6 (`::1`).
+- `npm run test:e2e` sobe backend e frontend automaticamente via `globalSetup`, sem depender de shell externo.
+- `npm run test:e2e:local` é útil quando você já está com os servidores rodando manualmente.
+- Variáveis opcionais para depuração: `E2E_HOST`, `E2E_FRONTEND_PORT`, `E2E_BACKEND_PORT`, `E2E_BASE_URL` e `E2E_API_URL`.
 
 ---
 

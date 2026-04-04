@@ -18,8 +18,8 @@ import { boletosAPI, pedidosAPI } from '../services/api';
 import Boletos from '../pages/Boletos';
 
 const pedidosMock = [
-  { id: 1, numero_pedido: 'PED-001', cliente_nome: 'Empresa A' },
-  { id: 2, numero_pedido: 'PED-002', cliente_nome: 'Empresa B' }
+  { id: 1, numero_pedido: 'PED-001', cliente_nome: 'Empresa A', total_pedido: 100 },
+  { id: 2, numero_pedido: 'PED-002', cliente_nome: 'Empresa B', total_pedido: 250.5 }
 ];
 
 const boletosMock = [
@@ -135,6 +135,17 @@ describe('Boletos', () => {
     expect(screen.queryByText('Novo Boleto')).not.toBeInTheDocument();
   });
 
+  it('fecha modal ao clicar no X', async () => {
+    setupMocks();
+    render(<Boletos />);
+
+    await waitFor(() => screen.getByText('BOL-001'));
+    fireEvent.click(screen.getByText(/\+ Novo Boleto/i));
+    fireEvent.click(screen.getByLabelText('Fechar janela'));
+
+    expect(screen.queryByText('Novo Boleto')).not.toBeInTheDocument();
+  });
+
   it('abre modal de edição com dados do boleto', async () => {
     setupMocks();
     render(<Boletos />);
@@ -145,6 +156,22 @@ describe('Boletos', () => {
 
     expect(screen.getByText('Editar Boleto')).toBeInTheDocument();
     expect(screen.getByDisplayValue('BOL-001')).toBeInTheDocument();
+  });
+
+  it('preenche o valor automaticamente ao selecionar um pedido no novo boleto', async () => {
+    setupMocks();
+    render(<Boletos />);
+
+    await waitFor(() => screen.getByText('BOL-001'));
+    fireEvent.click(screen.getByText(/\+ Novo Boleto/i));
+
+    const modal = screen.getByText('Novo Boleto').closest('.modal-content');
+    const pedidoSelect = modal.querySelector('select[required]');
+    fireEvent.change(pedidoSelect, { target: { value: '2' } });
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('250.5')).toBeInTheDocument();
+    });
   });
 
   it('cria novo boleto com sucesso', async () => {

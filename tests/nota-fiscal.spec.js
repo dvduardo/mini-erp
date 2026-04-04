@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import path from 'path';
+import { E2E_API_URL, E2E_BASE_URL } from './e2e-env.js';
 
-const BASE = 'http://localhost:3000';
-const API = 'http://localhost:5001/api';
+const BASE = E2E_BASE_URL;
+const API = E2E_API_URL;
 
 // PDF mínimo válido em bytes
 const PDF_CONTENT = Buffer.from(
