@@ -77,6 +77,17 @@ function Boletos() {
     setEditingId(null);
   };
 
+  const handlePedidoChange = (pedidoId) => {
+    const pedidoSelecionado = pedidos.find((pedido) => String(pedido.id) === String(pedidoId));
+    const valorPedido = pedidoSelecionado?.total_pedido;
+
+    setFormData((currentData) => ({
+      ...currentData,
+      pedido_id: pedidoId,
+      valor: valorPedido !== undefined && valorPedido !== null ? String(valorPedido) : currentData.valor
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -213,7 +224,7 @@ function Boletos() {
                   <label>Pedido *</label>
                   <select
                     value={formData.pedido_id}
-                    onChange={(e) => setFormData({ ...formData, pedido_id: e.target.value })}
+                    onChange={(e) => handlePedidoChange(e.target.value)}
                     required
                     disabled={editingId !== null}
                   >
