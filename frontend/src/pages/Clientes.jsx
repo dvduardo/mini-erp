@@ -70,11 +70,17 @@ function Clientes() {
     e.preventDefault();
 
     try {
+      const payload = {
+        ...formData,
+        nome: formData.nome.trim(),
+        cpf_cnpj: formData.cpf_cnpj.trim()
+      };
+
       if (editingId) {
-        await clientesAPI.update(editingId, formData);
+        await clientesAPI.update(editingId, payload);
         setToast({ message: 'Cliente atualizado com sucesso!', type: 'success' });
       } else {
-        await clientesAPI.create(formData);
+        await clientesAPI.create(payload);
         setToast({ message: 'Cliente criado com sucesso!', type: 'success' });
       }
 
@@ -82,7 +88,7 @@ function Clientes() {
       handleCloseModal();
     } catch (error) {
       console.error('Erro ao salvar cliente:', error);
-      setToast({ message: 'Erro ao salvar cliente.', type: 'error' });
+      setToast({ message: error.response?.data?.error || 'Erro ao salvar cliente.', type: 'error' });
     }
   };
 
@@ -214,12 +220,13 @@ function Clientes() {
                 </div>
 
                 <div className="form-group">
-                  <label>CNPJ</label>
+                  <label>CNPJ *</label>
                   <input
                     type="text"
                     value={formData.cpf_cnpj || ''}
                     onChange={(e) => setFormData({ ...formData, cpf_cnpj: e.target.value })}
                     placeholder="00.000.000/0000-00"
+                    required
                   />
                 </div>
               </div>

@@ -142,7 +142,9 @@ describe('Clientes', () => {
     fireEvent.click(screen.getByText(/\+ Novo Cliente/i));
 
     const nomeInput = screen.getByPlaceholderText('Nome do contato');
+    const cnpjInput = screen.getByPlaceholderText('00.000.000/0000-00');
     await user.type(nomeInput, 'Novo Cliente');
+    await user.type(cnpjInput, '12.345.678/0001-00');
 
     fireEvent.submit(screen.getByText('Salvar').closest('form'));
 
@@ -214,14 +216,26 @@ describe('Clientes', () => {
 
     fireEvent.click(screen.getByText(/\+ Novo Cliente/i));
     const nomeInput = screen.getByPlaceholderText('Nome do contato');
+    const cnpjInput = screen.getByPlaceholderText('00.000.000/0000-00');
     await user.type(nomeInput, 'Empresa Duplicada');
+    await user.type(cnpjInput, '12.345.678/0001-00');
 
     const form = screen.getByText('Salvar').closest('form');
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText('Erro ao salvar cliente.')).toBeInTheDocument();
+      expect(screen.getByText('CPF/CNPJ já cadastrado')).toBeInTheDocument();
     });
+  });
+
+  it('marca CPF/CNPJ como obrigatório no formulário', async () => {
+    clientesAPI.getAll.mockResolvedValue({ data: [] });
+    render(<Clientes />);
+
+    await waitFor(() => screen.getByText(/Nenhum cliente cadastrado/i));
+    fireEvent.click(screen.getByText(/\+ Cadastrar primeiro cliente/i));
+
+    expect(screen.getByPlaceholderText('00.000.000/0000-00')).toBeRequired();
   });
 
   it('lida com erro ao deletar cliente', async () => {

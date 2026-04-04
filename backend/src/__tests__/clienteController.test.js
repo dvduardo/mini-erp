@@ -131,8 +131,29 @@ describe('clienteController', () => {
       expect(res.json).toHaveBeenCalledWith({ error: 'Campo "nome" é obrigatório' });
     });
 
+    it('retorna 400 quando CPF/CNPJ está ausente', async () => {
+      const req = createReq({}, { nome: 'Empresa Sem Documento' });
+      const res = createRes();
+      await createCliente(req, res);
+
+      expect(dbRun).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Campo "CPF/CNPJ" é obrigatório' });
+    });
+
     it('retorna 400 quando CPF/CNPJ já existe (UNIQUE constraint)', async () => {
       dbRun.mockRejectedValue(new Error('UNIQUE constraint failed: clientes.cpf_cnpj'));
+
+      const req = createReq({}, { nome: 'Empresa B', cpf_cnpj: '12.345.678/0001-00' });
+      const res = createRes();
+      await createCliente(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'CPF/CNPJ já cadastrado' });
+    });
+
+    it('retorna 400 quando CPF/CNPJ já existe no PostgreSQL', async () => {
+      dbRun.mockRejectedValue(new Error('duplicate key value violates unique constraint "clientes_cpf_cnpj_key"'));
 
       const req = createReq({}, { nome: 'Empresa B', cpf_cnpj: '12.345.678/0001-00' });
       const res = createRes();
@@ -145,7 +166,7 @@ describe('clienteController', () => {
     it('retorna 500 em caso de erro genérico no banco', async () => {
       dbRun.mockRejectedValue(new Error('Unexpected DB error'));
 
-      const req = createReq({}, { nome: 'Empresa C' });
+      const req = createReq({}, { nome: 'Empresa C', cpf_cnpj: '98.765.432/0001-10' });
       const res = createRes();
       await createCliente(req, res);
 
@@ -157,8 +178,8 @@ describe('clienteController', () => {
   // ── updateCliente ────────────────────────────────────────────────────────────
   describe('updateCliente', () => {
     it('atualiza cliente com sucesso', async () => {
-      const clienteExistente = { id: 1, nome: 'Empresa A', email: 'a@a.com', ativo: 1 };
-      const clienteAtualizado = { id: 1, nome: 'Empresa A Editada', email: 'a@a.com', ativo: 1 };
+      const clienteExistente = { id: 1, nome: 'Empresa A', email: 'a@a.com', cpf_cnpj: '12.345.678/0001-00', ativo: 1 };
+      const clienteAtualizado = { id: 1, nome: 'Empresa A Editada', email: 'a@a.com', cpf_cnpj: '12.345.678/0001-00', ativo: 1 };
       dbGet
         .mockResolvedValueOnce(clienteExistente)
         .mockResolvedValueOnce(clienteAtualizado);
@@ -175,7 +196,7 @@ describe('clienteController', () => {
     it('retorna 404 quando cliente não existe', async () => {
       dbGet.mockResolvedValue(undefined);
 
-      const req = createReq({ id: '999' }, { nome: 'Empresa X' });
+      const req = createReq({ id: '999' }, { nome: 'Empresa X', cpf_cnpj: '12.345.678/0001-00' });
       const res = createRes();
       await updateCliente(req, res);
 
@@ -186,7 +207,7 @@ describe('clienteController', () => {
     it('mantém valores existentes para campos não enviados', async () => {
       const clienteExistente = {
         id: 1, nome: 'Empresa A', email: 'a@a.com', telefone: '11999',
-        cpf_cnpj: null, endereco: null, ativo: 1, razao_social: null,
+        cpf_cnpj: '12.345.678/0001-00', endereco: null, ativo: 1, razao_social: null,
         nome_fantasia: null, bairro: null, cidade: null, cep: null, inscricao_estadual: null
       };
       dbGet
@@ -203,10 +224,10 @@ describe('clienteController', () => {
     });
 
     it('retorna 500 em caso de erro no banco', async () => {
-      dbGet.mockResolvedValueOnce({ id: 1, nome: 'A' });
+      dbGet.mockResolvedValueOnce({ id: 1, nome: 'A', cpf_cnpj: '12.345.678/0001-00' });
       dbRun.mockRejectedValue(new Error('DB error'));
 
-      const req = createReq({ id: '1' }, { nome: 'B' });
+      const req = createReq({ id: '1' }, { nome: 'B', cpf_cnpj: '12.345.678/0001-00' });
       const res = createRes();
       await updateCliente(req, res);
 

@@ -1,5 +1,22 @@
 import { dbRun, dbGet, dbAll } from '../config/database.js';
 
+function normalizeRequired(value) {
+  return typeof value === 'string' ? value.trim() : value;
+}
+
+function normalizeOptional(value) {
+  if (typeof value !== 'string') {
+    return value ?? null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
+function isUniqueConstraintError(err) {
+  return err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key value violates unique constraint');
+}
+
 // Listar todos os clientes
 export const getClientes = async (req, res) => {
   try {
@@ -33,9 +50,16 @@ export const createCliente = async (req, res) => {
       nome, email, telefone, cpf_cnpj, endereco,
       razao_social, nome_fantasia, bairro, cidade, cep, inscricao_estadual
     } = req.body;
+
+    const normalizedNome = normalizeRequired(nome);
+    const normalizedCpfCnpj = normalizeRequired(cpf_cnpj);
     
-    if (!nome) {
+    if (!normalizedNome) {
       return res.status(400).json({ error: 'Campo "nome" é obrigatório' });
+    }
+
+    if (!normalizedCpfCnpj) {
+      return res.status(400).json({ error: 'Campo "CPF/CNPJ" é obrigatório' });
     }
     
     const result = await dbRun(
@@ -44,15 +68,24 @@ export const createCliente = async (req, res) => {
         razao_social, nome_fantasia, bairro, cidade, cep, inscricao_estadual
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
       [
-        nome, email, telefone, cpf_cnpj, endereco,
-        razao_social, nome_fantasia, bairro, cidade, cep, inscricao_estadual
+        normalizedNome,
+        normalizeOptional(email),
+        normalizeOptional(telefone),
+        normalizedCpfCnpj,
+        normalizeOptional(endereco),
+        normalizeOptional(razao_social),
+        normalizeOptional(nome_fantasia),
+        normalizeOptional(bairro),
+        normalizeOptional(cidade),
+        normalizeOptional(cep),
+        normalizeOptional(inscricao_estadual)
       ]
     );
     
     const cliente = await dbGet('SELECT * FROM clientes WHERE id = ?', [result.id]);
     res.status(201).json(cliente);
   } catch (err) {
-    if (err.message.includes('UNIQUE constraint failed')) {
+    if (isUniqueConstraintError(err)) {
       return res.status(400).json({ error: 'CPF/CNPJ já cadastrado' });
     }
     res.status(500).json({ error: err.message });
@@ -72,6 +105,17 @@ export const updateCliente = async (req, res) => {
     if (!cliente) {
       return res.status(404).json({ error: 'Cliente não encontrado' });
     }
+
+    const nextNome = nome !== undefined ? normalizeRequired(nome) : cliente.nome;
+    const nextCpfCnpj = cpf_cnpj !== undefined ? normalizeRequired(cpf_cnpj) : cliente.cpf_cnpj;
+
+    if (!nextNome) {
+      return res.status(400).json({ error: 'Campo "nome" é obrigatório' });
+    }
+
+    if (!nextCpfCnpj) {
+      return res.status(400).json({ error: 'Campo "CPF/CNPJ" é obrigatório' });
+    }
     
     await dbRun(
       `UPDATE clientes SET 
@@ -79,18 +123,18 @@ export const updateCliente = async (req, res) => {
         razao_social = ?, nome_fantasia = ?, bairro = ?, cidade = ?, cep = ?, inscricao_estadual = ?
       WHERE id = ?`,
       [
-        nome !== undefined ? nome : cliente.nome,
-        email !== undefined ? email : cliente.email,
-        telefone !== undefined ? telefone : cliente.telefone,
-        cpf_cnpj !== undefined ? cpf_cnpj : cliente.cpf_cnpj,
-        endereco !== undefined ? endereco : cliente.endereco,
+        nextNome,
+        email !== undefined ? normalizeOptional(email) : cliente.email,
+        telefone !== undefined ? normalizeOptional(telefone) : cliente.telefone,
+        nextCpfCnpj,
+        endereco !== undefined ? normalizeOptional(endereco) : cliente.endereco,
         ativo !== undefined ? ativo : cliente.ativo,
-        razao_social !== undefined ? razao_social : cliente.razao_social,
-        nome_fantasia !== undefined ? nome_fantasia : cliente.nome_fantasia,
-        bairro !== undefined ? bairro : cliente.bairro,
-        cidade !== undefined ? cidade : cliente.cidade,
-        cep !== undefined ? cep : cliente.cep,
-        inscricao_estadual !== undefined ? inscricao_estadual : cliente.inscricao_estadual,
+        razao_social !== undefined ? normalizeOptional(razao_social) : cliente.razao_social,
+        nome_fantasia !== undefined ? normalizeOptional(nome_fantasia) : cliente.nome_fantasia,
+        bairro !== undefined ? normalizeOptional(bairro) : cliente.bairro,
+        cidade !== undefined ? normalizeOptional(cidade) : cliente.cidade,
+        cep !== undefined ? normalizeOptional(cep) : cliente.cep,
+        inscricao_estadual !== undefined ? normalizeOptional(inscricao_estadual) : cliente.inscricao_estadual,
         id
       ]
     );
@@ -98,6 +142,9 @@ export const updateCliente = async (req, res) => {
     const clienteAtualizado = await dbGet('SELECT * FROM clientes WHERE id = ?', [id]);
     res.json(clienteAtualizado);
   } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return res.status(400).json({ error: 'CPF/CNPJ já cadastrado' });
+    }
     res.status(500).json({ error: err.message });
   }
 };
