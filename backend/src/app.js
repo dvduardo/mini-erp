@@ -4,7 +4,6 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 
 // Importar rotas
 import clienteRoutes from './routes/clienteRoutes.js';
@@ -20,21 +19,12 @@ import { uploadsDir } from './config/storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const shouldApplyLoginRateLimit = process.env.NODE_ENV === 'production';
 
 // Configurar proxy reverso (necessário para Heroku e X-Forwarded-For)
 app.set('trust proxy', 1);
 
 // Middlewares de segurança
 app.use(helmet());
-
-// Rate limiter para login (evitar brute force)
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5,
-  message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
-  skip: () => !shouldApplyLoginRateLimit // Desativar rate limiter fora de produção
-});
 
 // Middlewares gerais
 app.use(cors());
@@ -49,7 +39,7 @@ const frontendDistPath = path.join(__dirname, '../../frontend/dist');
 app.use(express.static(frontendDistPath));
 
 // Rotas públicas (sem autenticação)
-app.use('/api/auth', loginLimiter, authRoutes);
+app.use('/api/auth', authRoutes);
 
 // Rotas protegidas (com autenticação)
 app.use('/api/clientes', authMiddleware, clienteRoutes);
