@@ -480,11 +480,37 @@ button.btn-sm {
   border-top: 4px solid var(--color-accent);
 }
 
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
 .modal-content h3 {
   font-family: var(--font-display);
   font-size: 20px;
   color: var(--color-text);
-  margin: 0 0 24px;
+  margin: 0;
+}
+
+.modal-close {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 26px;
+  line-height: 1;
+  padding: 0;
+  min-width: auto;
+  box-shadow: none;
+}
+
+.modal-close:hover {
+  background: transparent;
+  color: var(--color-text);
+  transform: none;
+  box-shadow: none;
 }
 
 .modal-buttons {

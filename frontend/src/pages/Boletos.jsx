@@ -202,7 +202,10 @@ function Boletos() {
       {showModal && (
         <div className="modal active">
           <div className="modal-content">
-            <h3>{editingId ? 'Editar Boleto' : 'Novo Boleto'}</h3>
+            <div className="modal-header">
+              <h3>{editingId ? 'Editar Boleto' : 'Novo Boleto'}</h3>
+              <button type="button" className="modal-close" aria-label="Fechar janela" onClick={handleCloseModal}>×</button>
+            </div>
             
             <form onSubmit={handleSubmit}>
               <div className="form-row">

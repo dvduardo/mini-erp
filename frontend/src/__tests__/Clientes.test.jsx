@@ -108,6 +108,17 @@ describe('Clientes', () => {
     expect(screen.queryByText('Novo Cliente')).not.toBeInTheDocument();
   });
 
+  it('fecha modal ao clicar no X', async () => {
+    clientesAPI.getAll.mockResolvedValue({ data: clientesMock });
+    render(<Clientes />);
+
+    await waitFor(() => screen.getByText('JS Comercio'));
+    fireEvent.click(screen.getByText(/\+ Novo Cliente/i));
+    fireEvent.click(screen.getByLabelText('Fechar janela'));
+
+    expect(screen.queryByText('Novo Cliente')).not.toBeInTheDocument();
+  });
+
   it('abre modal de edição com dados do cliente', async () => {
     clientesAPI.getAll.mockResolvedValue({ data: clientesMock });
     render(<Clientes />);

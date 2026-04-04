@@ -135,6 +135,17 @@ describe('Boletos', () => {
     expect(screen.queryByText('Novo Boleto')).not.toBeInTheDocument();
   });
 
+  it('fecha modal ao clicar no X', async () => {
+    setupMocks();
+    render(<Boletos />);
+
+    await waitFor(() => screen.getByText('BOL-001'));
+    fireEvent.click(screen.getByText(/\+ Novo Boleto/i));
+    fireEvent.click(screen.getByLabelText('Fechar janela'));
+
+    expect(screen.queryByText('Novo Boleto')).not.toBeInTheDocument();
+  });
+
   it('abre modal de edição com dados do boleto', async () => {
     setupMocks();
     render(<Boletos />);

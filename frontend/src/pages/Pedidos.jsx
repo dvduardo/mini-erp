@@ -418,7 +418,10 @@ function Pedidos() {
       {showModal && (
         <div className="modal active">
           <div className="modal-content">
-            <h3>{editingId ? 'Editar Pedido' : 'Novo Pedido'}</h3>
+            <div className="modal-header">
+              <h3>{editingId ? 'Editar Pedido' : 'Novo Pedido'}</h3>
+              <button type="button" className="modal-close" aria-label="Fechar janela" onClick={handleCloseModal}>×</button>
+            </div>
             
             <form onSubmit={handleSubmit}>
               <div className="form-row">
@@ -722,7 +725,10 @@ function Pedidos() {
       {showDetailsModal && selectedPedido && (
         <div className="modal active">
           <div className="modal-content">
-            <h3>Detalhes do Pedido {selectedPedido.numero_pedido}</h3>
+            <div className="modal-header">
+              <h3>Detalhes do Pedido {selectedPedido.numero_pedido}</h3>
+              <button type="button" className="modal-close" aria-label="Fechar janela" onClick={() => setShowDetailsModal(false)}>×</button>
+            </div>
             
             <div>
               <h4>Informações do Cliente:</h4>
@@ -870,7 +876,10 @@ function Pedidos() {
       {showAddProdutoModal && selectedPedido && (
         <div className="modal active">
           <div className="modal-content" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
-            <h3>Adicionar Produto ao Pedido {selectedPedido.numero_pedido}</h3>
+            <div className="modal-header">
+              <h3>Adicionar Produto ao Pedido {selectedPedido.numero_pedido}</h3>
+              <button type="button" className="modal-close" aria-label="Fechar janela" onClick={handleCloseProdutoModal}>×</button>
+            </div>
 
             <form onSubmit={handleAddProduto}>
               <div className="form-group">

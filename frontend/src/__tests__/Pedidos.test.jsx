@@ -179,6 +179,17 @@ describe('Pedidos', () => {
     expect(screen.queryByText('Novo Pedido')).not.toBeInTheDocument();
   });
 
+  it('fecha modal de pedido ao clicar no X', async () => {
+    setupMocks();
+    render(<Pedidos />);
+
+    await waitFor(() => screen.getByText('PED-001'));
+    fireEvent.click(screen.getByText(/\+ Novo Pedido/i));
+    fireEvent.click(screen.getByLabelText('Fechar janela'));
+
+    expect(screen.queryByText('Novo Pedido')).not.toBeInTheDocument();
+  });
+
   it('adiciona linha de produto ao clicar em "+ Adicionar Produto"', async () => {
     setupMocks();
     render(<Pedidos />);
