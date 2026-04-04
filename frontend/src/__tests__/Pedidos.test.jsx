@@ -27,8 +27,15 @@ import { pedidosAPI, clientesAPI, notasFiscaisAPI, produtosAPI } from '../servic
 import Pedidos from '../pages/Pedidos';
 
 const clientesMock = [
-  { id: 1, nome: 'Empresa A' },
-  { id: 2, nome: 'Empresa B' }
+  {
+    id: 1,
+    nome: 'Empresa A',
+    endereco: 'Rua das Flores, 123',
+    bairro: 'Centro',
+    cidade: 'Sao Paulo',
+    cep: '01000-000'
+  },
+  { id: 2, nome: 'Empresa B', endereco: '', bairro: '', cidade: '', cep: '' }
 ];
 
 const pedidosMock = [
@@ -671,6 +678,40 @@ describe('Pedidos', () => {
     });
 
     fireEvent.click(screen.getByText('Cancelar'));
+  });
+
+  it('autopreenche endereço de entrega ao selecionar cliente com endereço cadastrado', async () => {
+    setupMocks();
+    render(<Pedidos />);
+    await waitFor(() => screen.getByText('PED-001'));
+
+    fireEvent.click(screen.getByText(/\+ Novo Pedido/i));
+
+    const clienteSelect = screen.getByText('Cliente *').closest('.form-group').querySelector('select');
+    fireEvent.change(clienteSelect, { target: { value: '1' } });
+
+    expect(screen.getByDisplayValue('Rua das Flores, 123')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Centro')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Sao Paulo')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('01000-000')).toBeInTheDocument();
+    expect(screen.getByText(/Os dados de entrega foram carregados do cadastro do cliente/i)).toBeInTheDocument();
+  });
+
+  it('mantém campos de entrega em branco ao selecionar cliente sem endereço cadastrado', async () => {
+    setupMocks();
+    render(<Pedidos />);
+    await waitFor(() => screen.getByText('PED-001'));
+
+    fireEvent.click(screen.getByText(/\+ Novo Pedido/i));
+
+    const clienteSelect = screen.getByText('Cliente *').closest('.form-group').querySelector('select');
+    fireEvent.change(clienteSelect, { target: { value: '2' } });
+
+    expect(screen.getByText('Endereço de Entrega').closest('.form-group').querySelector('input')).toHaveValue('');
+    expect(screen.getByText('Bairro').closest('.form-group').querySelector('input')).toHaveValue('');
+    expect(screen.getByText('Cidade').closest('.form-group').querySelector('input')).toHaveValue('');
+    expect(screen.getByText('CEP').closest('.form-group').querySelector('input')).toHaveValue('');
+    expect(screen.getByText(/Este cliente não possui endereço cadastrado/i)).toBeInTheDocument();
   });
 
   it('lida com erro ao adicionar produto no modal de detalhes', async () => {

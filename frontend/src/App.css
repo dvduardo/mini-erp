@@ -375,6 +375,26 @@ form textarea:focus {
   box-shadow: 0 0 0 3px rgba(196, 137, 42, 0.15);
 }
 
+.form-helper {
+  margin: 8px 0 0;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border-light);
+  background: var(--color-surface-warm);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.form-helper.is-filled {
+  color: var(--color-success);
+  border-color: rgba(45, 106, 79, 0.2);
+  background: rgba(45, 106, 79, 0.08);
+}
+
+.form-helper.is-muted {
+  color: var(--color-text-muted);
+}
+
 /* ─── Botões ─── */
 
 button {

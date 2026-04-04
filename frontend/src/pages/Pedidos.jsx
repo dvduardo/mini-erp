@@ -4,15 +4,7 @@ import Toast from '../components/Toast';
 import { formatBRL } from '../utils/format';
 
 function Pedidos() {
-  const [pedidos, setPedidos] = useState([]);
-  const [clientes, setClientes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [selectedPedido, setSelectedPedido] = useState(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showAddProdutoModal, setShowAddProdutoModal] = useState(false);
-  const [formData, setFormData] = useState({
+  const createEmptyFormData = () => ({
     cliente_id: '',
     numero_pedido: '',
     data_emissao: '',
@@ -25,6 +17,16 @@ function Pedidos() {
     cep_entrega: '',
     total_pedido: ''
   });
+
+  const [pedidos, setPedidos] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [selectedPedido, setSelectedPedido] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAddProdutoModal, setShowAddProdutoModal] = useState(false);
+  const [formData, setFormData] = useState(createEmptyFormData);
   const [produtosForm, setProdutosForm] = useState([{
     codigo_fornecedor: '',
     cod_seq: '',
@@ -103,19 +105,7 @@ function Pedidos() {
       setProdutosForm([]);
     } else {
       setEditingId(null);
-      setFormData({
-        cliente_id: '',
-        numero_pedido: '',
-        data_emissao: '',
-        data_entrega: '',
-        status: 'pendente',
-        observacoes: '',
-        endereco_entrega: '',
-        bairro_entrega: '',
-        cidade_entrega: '',
-        cep_entrega: '',
-        total_pedido: ''
-      });
+      setFormData(createEmptyFormData());
       setProdutosForm([emptyProduto()]);
     }
     setShowModal(true);
@@ -124,6 +114,19 @@ function Pedidos() {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingId(null);
+  };
+
+  const handleClienteChange = (clienteId) => {
+    const clienteSelecionado = clientes.find((cliente) => String(cliente.id) === String(clienteId));
+
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      cliente_id: clienteId,
+      endereco_entrega: clienteSelecionado?.endereco || '',
+      bairro_entrega: clienteSelecionado?.bairro || '',
+      cidade_entrega: clienteSelecionado?.cidade || '',
+      cep_entrega: clienteSelecionado?.cep || ''
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -275,6 +278,14 @@ function Pedidos() {
     }
   };
 
+  const clienteSelecionado = clientes.find((cliente) => String(cliente.id) === String(formData.cliente_id));
+  const clienteTemEndereco = Boolean(
+    clienteSelecionado?.endereco ||
+    clienteSelecionado?.bairro ||
+    clienteSelecionado?.cidade ||
+    clienteSelecionado?.cep
+  );
+
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -336,7 +347,7 @@ function Pedidos() {
                   <label>Cliente *</label>
                   <select
                     value={formData.cliente_id}
-                    onChange={(e) => setFormData({ ...formData, cliente_id: e.target.value })}
+                    onChange={(e) => handleClienteChange(e.target.value)}
                     required
                   >
                     <option value="">Selecione um cliente</option>
@@ -344,6 +355,13 @@ function Pedidos() {
                       <option key={cliente.id} value={cliente.id}>{cliente.nome}</option>
                     ))}
                   </select>
+                  {!editingId && formData.cliente_id && (
+                    <p className={`form-helper ${clienteTemEndereco ? 'is-filled' : 'is-muted'}`}>
+                      {clienteTemEndereco
+                        ? 'Os dados de entrega foram carregados do cadastro do cliente e podem ser ajustados abaixo.'
+                        : 'Este cliente não possui endereço cadastrado. Preencha os dados de entrega abaixo.'}
+                    </p>
+                  )}
                 </div>
 
                 <div className="form-group">

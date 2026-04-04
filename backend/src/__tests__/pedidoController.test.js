@@ -147,6 +147,62 @@ describe('pedidoController', () => {
       expect(res.json).toHaveBeenCalledWith(pedidoBase);
     });
 
+    it('usa endereço do cliente como fallback ao criar pedido', async () => {
+      const cliente = {
+        id: 10,
+        nome: 'Empresa A',
+        endereco: 'Rua Central, 100',
+        bairro: 'Centro',
+        cidade: 'Sao Paulo',
+        cep: '01000-000'
+      };
+      dbGet.mockResolvedValueOnce(cliente).mockResolvedValueOnce(pedidoBase);
+      dbRun.mockResolvedValue({ id: 1 });
+
+      const req = createReq({}, {
+        cliente_id: 10,
+        numero_pedido: 'PED-003'
+      });
+      const res = createRes();
+      await createPedido(req, res);
+
+      const callArgs = dbRun.mock.calls[0][1];
+      expect(callArgs[5]).toBe('Rua Central, 100');
+      expect(callArgs[6]).toBe('Centro');
+      expect(callArgs[7]).toBe('Sao Paulo');
+      expect(callArgs[8]).toBe('01000-000');
+    });
+
+    it('mantém endereço enviado no pedido quando ele já foi preenchido manualmente', async () => {
+      const cliente = {
+        id: 10,
+        nome: 'Empresa A',
+        endereco: 'Rua Cliente, 100',
+        bairro: 'Centro',
+        cidade: 'Sao Paulo',
+        cep: '01000-000'
+      };
+      dbGet.mockResolvedValueOnce(cliente).mockResolvedValueOnce(pedidoBase);
+      dbRun.mockResolvedValue({ id: 1 });
+
+      const req = createReq({}, {
+        cliente_id: 10,
+        numero_pedido: 'PED-004',
+        endereco_entrega: 'Rua Entrega, 999',
+        bairro_entrega: 'Bairro Novo',
+        cidade_entrega: 'Campinas',
+        cep_entrega: '13000-000'
+      });
+      const res = createRes();
+      await createPedido(req, res);
+
+      const callArgs = dbRun.mock.calls[0][1];
+      expect(callArgs[5]).toBe('Rua Entrega, 999');
+      expect(callArgs[6]).toBe('Bairro Novo');
+      expect(callArgs[7]).toBe('Campinas');
+      expect(callArgs[8]).toBe('13000-000');
+    });
+
     it('usa data_emissao null quando não fornecida', async () => {
       const cliente = { id: 10, nome: 'Empresa A' };
       dbGet.mockResolvedValueOnce(cliente).mockResolvedValueOnce(pedidoBase);
