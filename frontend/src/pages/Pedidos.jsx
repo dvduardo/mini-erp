@@ -75,6 +75,7 @@ function Pedidos() {
   };
 
   const emptyProduto = () => ({
+    id: null,
     codigo_fornecedor: '',
     cod_seq: '',
     produto_receber: '',
@@ -86,7 +87,51 @@ function Pedidos() {
     valor_icms_st: ''
   });
 
-  const handleOpenModal = (pedido = null) => {
+  const mapProdutoToForm = (produto = {}) => ({
+    id: produto.id || null,
+    codigo_fornecedor: produto.codigo_fornecedor || produto.cod_fornecedor || '',
+    cod_seq: produto.cod_seq || '',
+    produto_receber: produto.produto_receber || '',
+    embalagem: produto.embalagem || '',
+    quantidade: produto.quantidade ?? '',
+    valor_unitario: produto.valor_unitario ?? '',
+    valor_item: produto.valor_item ?? '',
+    custo_bruto: produto.custo_bruto ?? '',
+    valor_icms_st: produto.valor_icms_st ?? ''
+  });
+
+  const isProdutoEmpty = (produto) => (
+    !produto.codigo_fornecedor &&
+    !produto.cod_seq &&
+    !produto.produto_receber &&
+    !produto.embalagem &&
+    produto.quantidade === '' &&
+    produto.valor_unitario === '' &&
+    produto.valor_item === '' &&
+    produto.custo_bruto === '' &&
+    produto.valor_icms_st === ''
+  );
+
+  const hasRequiredProdutoFields = (produto) => (
+    Boolean(produto.produto_receber) &&
+    produto.quantidade !== '' &&
+    produto.valor_unitario !== '' &&
+    produto.valor_item !== ''
+  );
+
+  const normalizeProdutoPayload = (produto) => ({
+    cod_fornecedor: produto.codigo_fornecedor || null,
+    cod_seq: produto.cod_seq || null,
+    produto_receber: produto.produto_receber,
+    embalagem: produto.embalagem || null,
+    quantidade: parseFloat(produto.quantidade),
+    valor_unitario: parseFloat(produto.valor_unitario),
+    valor_item: parseFloat(produto.valor_item),
+    custo_bruto: produto.custo_bruto !== '' ? parseFloat(produto.custo_bruto) : null,
+    valor_icms_st: produto.valor_icms_st !== '' ? parseFloat(produto.valor_icms_st) : null
+  });
+
+  const handleOpenModal = async (pedido = null) => {
     if (pedido) {
       setEditingId(pedido.id);
       setFormData({
@@ -102,7 +147,15 @@ function Pedidos() {
         cep_entrega: pedido.cep_entrega || '',
         total_pedido: pedido.total_pedido || ''
       });
-      setProdutosForm([]);
+      try {
+        const res = await pedidosAPI.getById(pedido.id);
+        const produtos = Array.isArray(res.data.produtos) ? res.data.produtos : [];
+        setProdutosForm(produtos.length > 0 ? produtos.map(mapProdutoToForm) : [emptyProduto()]);
+      } catch (error) {
+        console.error('Erro ao carregar produtos do pedido:', error);
+        setProdutosForm([emptyProduto()]);
+        setToast({ message: 'Não foi possível carregar os produtos do pedido.', type: 'error' });
+      }
     } else {
       setEditingId(null);
       setFormData(createEmptyFormData());
@@ -114,6 +167,7 @@ function Pedidos() {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingId(null);
+    setProdutosForm([emptyProduto()]);
   };
 
   const handleClienteChange = (clienteId) => {
@@ -133,22 +187,47 @@ function Pedidos() {
     e.preventDefault();
 
     try {
+      const produtosPreenchidos = produtosForm.filter((produto) => !isProdutoEmpty(produto));
+      const produtosInvalidos = produtosPreenchidos.filter((produto) => !hasRequiredProdutoFields(produto));
+
+      if (produtosInvalidos.length > 0) {
+        setToast({ message: 'Preencha produto, quantidade, valor unitário e valor item para salvar os itens do pedido.', type: 'error' });
+        return;
+      }
+
       if (editingId) {
         await pedidosAPI.update(editingId, formData);
+
+        const pedidoAtual = await pedidosAPI.getById(editingId);
+        const produtosAtuais = Array.isArray(pedidoAtual.data.produtos) ? pedidoAtual.data.produtos : [];
+        const idsMantidos = new Set(produtosPreenchidos.filter((produto) => produto.id).map((produto) => produto.id));
+
+        for (const produtoAtual of produtosAtuais) {
+          if (!idsMantidos.has(produtoAtual.id)) {
+            await produtosAPI.delete(produtoAtual.id);
+          }
+        }
+
+        for (const produto of produtosPreenchidos) {
+          const payload = normalizeProdutoPayload(produto);
+
+          if (produto.id) {
+            await produtosAPI.update(produto.id, payload);
+          } else {
+            await produtosAPI.create({
+              pedido_id: editingId,
+              ...payload
+            });
+          }
+        }
       } else {
         const res = await pedidosAPI.create(formData);
         const pedidoId = res.data.id;
 
-        const produtosValidos = produtosForm.filter(p => p.produto_receber && p.quantidade && p.valor_unitario && p.valor_item);
-        for (const produto of produtosValidos) {
+        for (const produto of produtosPreenchidos) {
           await produtosAPI.create({
             pedido_id: pedidoId,
-            ...produto,
-            quantidade: parseFloat(produto.quantidade),
-            valor_unitario: parseFloat(produto.valor_unitario),
-            valor_item: parseFloat(produto.valor_item),
-            custo_bruto: produto.custo_bruto ? parseFloat(produto.custo_bruto) : null,
-            valor_icms_st: produto.valor_icms_st ? parseFloat(produto.valor_icms_st) : null
+            ...normalizeProdutoPayload(produto)
           });
         }
       }
@@ -472,170 +551,164 @@ function Pedidos() {
                 </div>
               </div>
 
-              {!editingId && (
-                <div style={{ marginTop: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <h4 style={{ margin: 0 }}>Produtos do Pedido *</h4>
-                    <button
-                      type="button"
-                      className="btn-sm"
-                      onClick={() => setProdutosForm([...produtosForm, emptyProduto()])}
-                    >
-                      + Adicionar Produto
-                    </button>
-                  </div>
+              <div style={{ marginTop: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0 }}>Produtos do Pedido</h4>
+                  <button
+                    type="button"
+                    className="btn-sm"
+                    onClick={() => setProdutosForm([...produtosForm, emptyProduto()])}
+                  >
+                    + Adicionar Produto
+                  </button>
+                </div>
 
-                  {produtosForm.map((produto, index) => (
-                    <div key={index} style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '12px', marginBottom: '10px', position: 'relative' }}>
-                      <strong style={{ fontSize: '13px' }}>Produto {index + 1}</strong>
-                      {produtosForm.length > 1 && (
-                        <button
-                          type="button"
-                          className="danger btn-sm"
-                          onClick={() => setProdutosForm(produtosForm.filter((_, i) => i !== index))}
-                          style={{ position: 'absolute', right: '10px', top: '10px' }}
-                        >
-                          Remover
-                        </button>
-                      )}
+                {produtosForm.map((produto, index) => (
+                  <div key={produto.id ?? `novo-${index}`} style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '12px', marginBottom: '10px', position: 'relative' }}>
+                    <strong style={{ fontSize: '13px' }}>Produto {index + 1}</strong>
+                    {produtosForm.length > 1 && (
+                      <button
+                        type="button"
+                        className="danger btn-sm"
+                        onClick={() => setProdutosForm(produtosForm.filter((_, i) => i !== index))}
+                        style={{ position: 'absolute', right: '10px', top: '10px' }}
+                      >
+                        Remover
+                      </button>
+                    )}
 
-                      <div className="form-row" style={{ marginTop: '8px' }}>
-                        <div className="form-group">
-                          <label>Produto a Receber *</label>
-                          <input
-                            type="text"
-                            value={produto.produto_receber}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], produto_receber: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                            required={index === 0}
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label>Embalagem</label>
-                          <input
-                            type="text"
-                            value={produto.embalagem}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], embalagem: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                          />
-                        </div>
+                    <div className="form-row" style={{ marginTop: '8px' }}>
+                      <div className="form-group">
+                        <label>Produto a Receber *</label>
+                        <input
+                          type="text"
+                          value={produto.produto_receber}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], produto_receber: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
                       </div>
 
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>Cód. Fornecedor</label>
-                          <input
-                            type="text"
-                            value={produto.codigo_fornecedor}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], codigo_fornecedor: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label>Cód. Seq</label>
-                          <input
-                            type="text"
-                            value={produto.cod_seq}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], cod_seq: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>Quantidade *</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={produto.quantidade}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], quantidade: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                            required={index === 0}
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label>Valor Unitário (R$) *</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={produto.valor_unitario}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], valor_unitario: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                            required={index === 0}
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label>Valor Item (R$) *</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={produto.valor_item}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], valor_item: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                            required={index === 0}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>Custo Bruto (R$)</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={produto.custo_bruto}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], custo_bruto: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label>Valor ICMS ST (R$)</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={produto.valor_icms_st}
-                            onChange={(e) => {
-                              const updated = [...produtosForm];
-                              updated[index] = { ...updated[index], valor_icms_st: e.target.value };
-                              setProdutosForm(updated);
-                            }}
-                          />
-                        </div>
+                      <div className="form-group">
+                        <label>Embalagem</label>
+                        <input
+                          type="text"
+                          value={produto.embalagem}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], embalagem: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Cód. Fornecedor</label>
+                        <input
+                          type="text"
+                          value={produto.codigo_fornecedor}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], codigo_fornecedor: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Cód. Seq</label>
+                        <input
+                          type="text"
+                          value={produto.cod_seq}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], cod_seq: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Quantidade *</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={produto.quantidade}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], quantidade: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Valor Unitário (R$) *</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={produto.valor_unitario}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], valor_unitario: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Valor Item (R$) *</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={produto.valor_item}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], valor_item: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Custo Bruto (R$)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={produto.custo_bruto}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], custo_bruto: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>Valor ICMS ST (R$)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={produto.valor_icms_st}
+                          onChange={(e) => {
+                            const updated = [...produtosForm];
+                            updated[index] = { ...updated[index], valor_icms_st: e.target.value };
+                            setProdutosForm(updated);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               <div className="modal-buttons">
                 <button type="button" className="secondary" onClick={handleCloseModal}>Cancelar</button>
