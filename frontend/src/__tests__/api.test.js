@@ -242,6 +242,16 @@ describe('API Service', () => {
       expect(mockApi.post).toHaveBeenCalledWith('/auth/register', { username: 'user', password: 'pass', email: 'a@b.com' });
     });
 
+    it('forgotPassword chama POST /auth/forgot-password', async () => {
+      await authAPI.forgotPassword('a@b.com');
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/forgot-password', { email: 'a@b.com' });
+    });
+
+    it('resetPassword chama POST /auth/reset-password', async () => {
+      await authAPI.resetPassword('token-123', 'nova123');
+      expect(mockApi.post).toHaveBeenCalledWith('/auth/reset-password', { token: 'token-123', password: 'nova123' });
+    });
+
     it('logout chama POST /auth/logout', async () => {
       await authAPI.logout();
       expect(mockApi.post).toHaveBeenCalledWith('/auth/logout');

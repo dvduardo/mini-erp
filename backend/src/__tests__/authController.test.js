@@ -22,10 +22,15 @@ vi.mock('../middleware/auth.js', () => ({
   generateToken: vi.fn(() => 'mocked-token')
 }));
 
+vi.mock('../config/mail.js', () => ({
+  sendPasswordResetEmail: vi.fn()
+}));
+
 import { dbRun, dbGet } from '../config/database.js';
 import bcryptjs from 'bcryptjs';
 import { generateToken } from '../middleware/auth.js';
-import { register, login, logout, me } from '../controllers/authController.js';
+import { sendPasswordResetEmail } from '../config/mail.js';
+import { register, login, logout, me, forgotPassword, resetPassword } from '../controllers/authController.js';
 
 const createReq = (body = {}, params = {}) => ({ body, params });
 const createRes = () => {
@@ -165,6 +170,117 @@ describe('authController', () => {
       expect(res.json).toHaveBeenCalledWith({
         message: 'Logout bem-sucedido. Remova o token no cliente.'
       });
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('retorna 400 sem email', async () => {
+      const req = createReq({});
+      const res = createRes();
+
+      await forgotPassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Email é obrigatório' });
+    });
+
+    it('retorna sucesso genérico quando email não existe', async () => {
+      dbGet.mockResolvedValue(null);
+      const req = createReq({ email: 'naoexiste@teste.com' });
+      req.get = vi.fn(() => 'http://localhost:5173');
+      const res = createRes();
+
+      await forgotPassword(req, res);
+
+      expect(sendPasswordResetEmail).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.'
+      });
+    });
+
+    it('gera token, salva hash e envia email', async () => {
+      dbGet.mockResolvedValue({ id: 'user-id', username: 'user', email: 'user@test.com' });
+      dbRun.mockResolvedValue({});
+      const req = createReq({ email: 'user@test.com' });
+      req.get = vi.fn(() => 'http://localhost:5173');
+      const res = createRes();
+
+      await forgotPassword(req, res);
+
+      expect(dbRun).toHaveBeenCalledTimes(1);
+      expect(dbRun.mock.calls[0][0]).toContain('reset_password_token');
+      expect(dbRun.mock.calls[0][1][0]).toEqual(expect.any(String));
+      expect(sendPasswordResetEmail).toHaveBeenCalledWith({
+        to: 'user@test.com',
+        username: 'user',
+        resetUrl: expect.stringContaining('http://localhost:5173?resetToken=')
+      });
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.'
+      });
+    });
+
+    it('retorna 500 em erro interno', async () => {
+      dbGet.mockRejectedValue(new Error('DB error'));
+      const req = createReq({ email: 'user@test.com' });
+      req.get = vi.fn(() => 'http://localhost:5173');
+      const res = createRes();
+
+      await forgotPassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao solicitar redefinição de senha' });
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('retorna 400 sem token ou senha', async () => {
+      const req = createReq({ token: 'abc' });
+      const res = createRes();
+
+      await resetPassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Token e nova senha são obrigatórios' });
+    });
+
+    it('retorna 400 para token inválido', async () => {
+      dbGet.mockResolvedValue(null);
+      const req = createReq({ token: 'abc', password: 'nova123' });
+      const res = createRes();
+
+      await resetPassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Token de redefinição inválido ou expirado' });
+    });
+
+    it('atualiza senha e limpa token quando válido', async () => {
+      dbGet.mockResolvedValue({ id: 'user-id' });
+      bcryptjs.hash.mockResolvedValue('hashed-new-pass');
+      dbRun.mockResolvedValue({});
+      const req = createReq({ token: 'abc', password: 'nova123' });
+      const res = createRes();
+
+      await resetPassword(req, res);
+
+      expect(bcryptjs.hash).toHaveBeenCalledWith('nova123', 10);
+      expect(dbRun).toHaveBeenCalledWith(
+        'UPDATE users SET password_hash = ?, reset_password_token = NULL, reset_password_expires_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        ['hashed-new-pass', 'user-id']
+      );
+      expect(res.json).toHaveBeenCalledWith({ message: 'Senha redefinida com sucesso' });
+    });
+
+    it('retorna 500 em erro interno', async () => {
+      dbGet.mockRejectedValue(new Error('DB error'));
+      const req = createReq({ token: 'abc', password: 'nova123' });
+      const res = createRes();
+
+      await resetPassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao redefinir senha' });
     });
   });
 

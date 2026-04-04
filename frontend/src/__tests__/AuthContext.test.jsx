@@ -20,6 +20,8 @@ vi.mock('../services/api', () => ({
     me: vi.fn(),
     login: vi.fn(),
     register: vi.fn(),
+    forgotPassword: vi.fn(),
+    resetPassword: vi.fn(),
     logout: vi.fn()
   }
 }));
@@ -28,7 +30,7 @@ import { authAPI } from '../services/api';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 
 function TestConsumer() {
-  const { user, loading, error, isAuthenticated, login, register, logout } = useAuth();
+  const { user, loading, error, isAuthenticated, login, register, forgotPassword, resetPassword, logout } = useAuth();
   return (
     <div>
       <span data-testid="loading">{String(loading)}</span>
@@ -37,6 +39,8 @@ function TestConsumer() {
       <span data-testid="error">{error || 'null'}</span>
       <button onClick={() => login('user', 'pass')}>login</button>
       <button onClick={() => register('user', 'pass', 'a@b.com')}>register</button>
+      <button onClick={() => forgotPassword('a@b.com')}>forgot</button>
+      <button onClick={() => resetPassword('token-123', 'nova123')}>reset</button>
       <button onClick={() => logout()}>logout</button>
     </div>
   );
@@ -184,5 +188,37 @@ describe('AuthContext', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<TestConsumer />)).toThrow('useAuth deve ser usado dentro de AuthProvider');
     consoleError.mockRestore();
+  });
+
+  it('forgotPassword com falha seta mensagem de erro', async () => {
+    authAPI.me.mockResolvedValue({});
+    authAPI.forgotPassword.mockRejectedValue({ response: { data: { error: 'Erro ao solicitar redefinição de senha' } } });
+
+    render(<AuthProvider><TestConsumer /></AuthProvider>);
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'));
+
+    await act(async () => {
+      screen.getByText('forgot').click();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('error').textContent).toBe('Erro ao solicitar redefinição de senha');
+    });
+  });
+
+  it('resetPassword com falha seta mensagem de erro', async () => {
+    authAPI.me.mockResolvedValue({});
+    authAPI.resetPassword.mockRejectedValue({ response: { data: { error: 'Token inválido' } } });
+
+    render(<AuthProvider><TestConsumer /></AuthProvider>);
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'));
+
+    await act(async () => {
+      screen.getByText('reset').click();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('error').textContent).toBe('Token inválido');
+    });
   });
 });

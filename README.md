@@ -257,6 +257,22 @@ npm test           # Roda testes Vitest
 npm run test:ui    # Abre UI visual para Vitest
 ```
 
+### Recuperação de Senha com Gmail
+
+O projeto agora suporta fluxo seguro de recuperação de senha por link temporário.
+
+Configure estas variáveis no backend:
+
+```env
+GMAIL_USER=seu-email@gmail.com
+GMAIL_APP_PASSWORD=sua-senha-de-app-do-gmail
+MAIL_FROM="La Dispensa <seu-email@gmail.com>"
+APP_URL=http://localhost:5173
+```
+
+Para usar Gmail, ative a autenticação em 2 fatores na conta e gere uma senha de app.
+O sistema envia um link com token temporário para a própria tela de login, usando `?resetToken=...`.
+
 ---
 
 ## SEÇÃO 3 – Backend: Arquitetura & Implementação 🛠️
