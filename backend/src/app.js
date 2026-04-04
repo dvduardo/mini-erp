@@ -18,6 +18,7 @@ import { authMiddleware } from './middleware/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+const shouldApplyLoginRateLimit = process.env.NODE_ENV === 'production';
 
 // Configurar proxy reverso (necessário para Heroku e X-Forwarded-For)
 app.set('trust proxy', 1);
@@ -28,9 +29,9 @@ app.use(helmet());
 // Rate limiter para login (evitar brute force)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'test' ? 1000 : 5, // máximo 1000 em testes, 5 em produção
+  max: 5,
   message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
-  skip: (req, res) => process.env.NODE_ENV === 'test' // Desativar rate limiter em testes
+  skip: () => !shouldApplyLoginRateLimit // Desativar rate limiter fora de produção
 });
 
 // Middlewares gerais
